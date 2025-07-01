@@ -1,47 +1,59 @@
-# SP.RBAC.API - Role-Based Access Control API
+# SP.RBAC.API - Rollebasert tilgangskontroll API
 
-A comprehensive .NET 9 Web API for managing role-based access control with support for integration systems, entity definitions, property definitions, and entity instances.
+En omfattende .NET 9 Web API for håndtering av rollebasert tilgangskontroll med støtte for integrasjonssystemer, entitetsdefinisjoner, egenskapsdefinisjoner og entitetsinstanser.
 
-## Features
+## Funksjonalitet
 
-- **Integration Systems Management**: CRUD operations for external systems (HR, EMR, CRM, etc.)
-- **Entity Definitions**: Define data structures for entities like Users, Roles, Departments
-- **Property Definitions**: Define properties/attributes for entities with various data types
-- **Entity Instances**: Manage actual entity records with property values (EAV pattern)
-- **Pagination Support**: All list endpoints support pagination
-- **In-Memory Database**: Uses Entity Framework Core with In-Memory database for easy testing
-- **AutoMapper Integration**: Automatic mapping between entities and DTOs
-- **Swagger Documentation**: Interactive API documentation at root URL
-- **Sample Data**: Pre-seeded with sample integration systems and entity data
+- **Integrasjonssystemhåndtering**: CRUD-operasjoner for eksterne systemer (HR, EMR, CRM, etc.)
+- **Entitetsdefinisjoner**: Definer datastrukturer for entiteter som brukere, roller, avdelinger
+- **Egenskapsdefinisjoner**: Definer egenskaper/attributter for entiteter med ulike datatyper  
+- **Entitetsinstanser**: Håndter faktiske entitetsposter med egenskapsverdier (EAV-mønster)
+- **Tilgangsregler**: Forretningsregler for automatisk tilgangstildeling
+- **Tilgangstildelinger**: Bruker-rolle-system kartlegging
+- **Egenskapsverdier**: Verdier for entitetsegenskaper med historikk
+- **Synkroniseringslogger**: Sporing av synkroniseringsaktiviteter
+- **Pagineringssstøtte**: Alle liste-endepunkter støtter paginering
+- **In-Memory Database**: Bruker Entity Framework Core med In-Memory database for enkel testing
+- **AutoMapper-integrasjon**: Automatisk kartlegging mellom entiteter og DTOer
+- **Swagger-dokumentasjon**: Interaktiv API-dokumentasjon på rot-URL
+- **Eksempeldata**: Forhåndsinitialisert med eksempel integrasjonssystemer og entitetsdata
 
-## Technology Stack
+## Teknologistakk
 
-- **.NET 9**: Latest .NET framework
-- **ASP.NET Core Web API**: RESTful API framework
-- **Entity Framework Core**: ORM with In-Memory database provider
-- **AutoMapper**: Object-to-object mapping
-- **Swagger/OpenAPI**: API documentation
-- **CORS**: Cross-origin resource sharing enabled
+- **.NET 9**: Nyeste .NET-rammeverk
+- **ASP.NET Core Web API**: RESTful API-rammeverk
+- **Entity Framework Core**: ORM med In-Memory og SQL Server-støtte
+- **AutoMapper**: Objekt-til-objekt kartlegging
+- **Swagger/OpenAPI**: API-dokumentasjon
+- **CORS**: Cross-origin resource sharing aktivert
 
-## Project Structure
+## Prosjektstruktur
 
 ```
 SP.RBAC.API/
-├── Controllers/           # API controllers
+├── Controllers/                    # API-kontrollere
 │   ├── IntegrationSystemsController.cs
 │   ├── EntityDefinitionsController.cs
 │   ├── PropertyDefinitionsController.cs
-│   └── EntityInstancesController.cs
-├── Data/                  # Data context and mappings
+│   ├── EntityInstancesController.cs
+│   ├── PropertyValuesController.cs
+│   ├── AccessRulesController.cs
+│   ├── AccessAssignmentsController.cs
+│   └── SyncLogsController.cs
+├── Data/                          # Datakontekst og kartlegging
 │   ├── RbacDbContext.cs
 │   └── MappingProfile.cs
-├── DTOs/                  # Data Transfer Objects
+├── DTOs/                          # Data Transfer Objects
 │   ├── CommonDTOs.cs
 │   ├── IntegrationSystemDTOs.cs
 │   ├── EntityDefinitionDTOs.cs
 │   ├── PropertyDefinitionDTOs.cs
-│   └── EntityInstanceDTOs.cs
-├── Entities/              # Domain entities
+│   ├── EntityInstanceDTOs.cs
+│   ├── PropertyValueDTOs.cs
+│   ├── AccessRuleDTOs.cs
+│   ├── AccessAssignmentDTOs.cs
+│   └── SyncLogDTOs.cs
+├── Entities/                      # Domeneentiteter
 │   ├── BaseEntity.cs
 │   ├── BaseAuditableEntity.cs
 │   ├── Enums.cs
@@ -53,109 +65,216 @@ SP.RBAC.API/
 │   ├── AccessRule.cs
 │   ├── AccessAssignment.cs
 │   └── SyncLog.cs
-└── Program.cs            # Application configuration and startup
+└── Program.cs                     # Applikasjonskonfigurasjon og oppstart
 ```
 
-## API Endpoints
+## API-endepunkter
 
-### Integration Systems
-- `GET /api/IntegrationSystems` - List integration systems with pagination
-- `GET /api/IntegrationSystems/{id}` - Get specific integration system
-- `POST /api/IntegrationSystems` - Create new integration system
-- `PUT /api/IntegrationSystems/{id}` - Update integration system
-- `DELETE /api/IntegrationSystems/{id}` - Delete integration system (soft delete)
-- `POST /api/IntegrationSystems/{id}/test-connection` - Test system connection
+### Integrasjonssystemer
 
-### Entity Definitions
-- `GET /api/EntityDefinitions` - List entity definitions with pagination
-- `GET /api/EntityDefinitions/{id}` - Get specific entity definition
-- `POST /api/EntityDefinitions` - Create new entity definition
-- `PUT /api/EntityDefinitions/{id}` - Update entity definition
-- `DELETE /api/EntityDefinitions/{id}` - Delete entity definition (soft delete)
-- `GET /api/EntityDefinitions/{id}/property-definitions` - Get property definitions for entity
+- `GET /api/IntegrationSystems` - List integrasjonssystemer med paginering
+- `GET /api/IntegrationSystems/{id}` - Hent spesifikt integrasjonssystem
+- `POST /api/IntegrationSystems` - Opprett nytt integrasjonssystem
+- `PUT /api/IntegrationSystems/{id}` - Oppdater integrasjonssystem
+- `DELETE /api/IntegrationSystems/{id}` - Slett integrasjonssystem (soft delete)
+- `POST /api/IntegrationSystems/{id}/test-connection` - Test systemtilkobling
 
-### Property Definitions
-- `GET /api/PropertyDefinitions` - List property definitions with pagination
-- `GET /api/PropertyDefinitions/{id}` - Get specific property definition
-- `POST /api/PropertyDefinitions` - Create new property definition
-- `PUT /api/PropertyDefinitions/{id}` - Update property definition
-- `DELETE /api/PropertyDefinitions/{id}` - Delete property definition (soft delete)
-- `GET /api/PropertyDefinitions/data-types` - Get available data types
+### Entitetsdefinisjoner
 
-### Entity Instances
-- `GET /api/EntityInstances` - List entity instances with pagination
-- `GET /api/EntityInstances/{id}` - Get specific entity instance
-- `POST /api/EntityInstances` - Create new entity instance
-- `PUT /api/EntityInstances/{id}` - Update entity instance
-- `DELETE /api/EntityInstances/{id}` - Delete entity instance (soft delete)
+- `GET /api/EntityDefinitions` - List entitetsdefinisjoner med paginering
+- `GET /api/EntityDefinitions/{id}` - Hent spesifikk entitetsdefinisjon
+- `POST /api/EntityDefinitions` - Opprett ny entitetsdefinisjon
+- `PUT /api/EntityDefinitions/{id}` - Oppdater entitetsdefinisjon
+- `DELETE /api/EntityDefinitions/{id}` - Slett entitetsdefinisjon (soft delete)
+- `GET /api/EntityDefinitions/{id}/property-definitions` - Hent egenskapsdefinisjoner for entitet
 
-## Data Model
+### Egenskapsdefinisjoner
 
-### Core Entities
+- `GET /api/PropertyDefinitions` - List egenskapsdefinisjoner med paginering
+- `GET /api/PropertyDefinitions/{id}` - Hent spesifikk egenskapsdefinisjon
+- `POST /api/PropertyDefinitions` - Opprett ny egenskapsdefinisjon
+- `PUT /api/PropertyDefinitions/{id}` - Oppdater egenskapsdefinisjon
+- `DELETE /api/PropertyDefinitions/{id}` - Slett egenskapsdefinisjon (soft delete)
+- `GET /api/PropertyDefinitions/data-types` - Hent tilgjengelige datatyper
 
-1. **IntegrationSystem**: External systems to integrate with
-2. **EntityDefinition**: Defines structure of entities within a system
-3. **PropertyDefinition**: Defines properties/attributes for entities
-4. **EntityInstance**: Actual instances of entities
-5. **PropertyValue**: Values for entity properties (EAV pattern)
-6. **AccessRule**: Business rules for access assignment
-7. **AccessAssignment**: User-role-system mappings
-8. **SyncLog**: Synchronization activity logs
+### Entitetsinstanser
 
-### Supported Data Types
+- `GET /api/EntityInstances` - List entitetsinstanser med paginering
+- `GET /api/EntityInstances/{id}` - Hent spesifikk entitetsinstans
+- `POST /api/EntityInstances` - Opprett ny entitetsinstans
+- `PUT /api/EntityInstances/{id}` - Oppdater entitetsinstans
+- `DELETE /api/EntityInstances/{id}` - Slett entitetsinstans (soft delete)
 
-- String, Integer, Decimal, Boolean
-- DateTime, Date, Time
-- Email, Phone, Url
-- List, Json
+### Egenskapsverdier
 
-### Authentication Types
+- `GET /api/PropertyValues` - List egenskapsverdier med paginering
+- `GET /api/PropertyValues/{id}` - Hent spesifikk egenskapsverdi
+- `POST /api/PropertyValues` - Opprett ny egenskapsverdi
+- `PUT /api/PropertyValues/{id}` - Oppdater egenskapsverdi
+- `GET /api/PropertyValues/entity-instance/{entityInstanceId}` - Hent verdier for entitetsinstans
+- `GET /api/PropertyValues/property-definition/{propertyDefinitionId}` - Hent verdier for egenskapsdefinisjon
+- `GET /api/PropertyValues/entity-instance/{entityInstanceId}/history` - Hent historikk for entitetsinstans
 
-- Database, LDAP, OAuth2, SAML, JWT, ApiKey
+### Tilgangsregler
 
-## Getting Started
+- `GET /api/AccessRules` - List tilgangsregler med paginering
+- `GET /api/AccessRules/{id}` - Hent spesifikk tilgangsregel
+- `POST /api/AccessRules` - Opprett ny tilgangsregel
+- `PUT /api/AccessRules/{id}` - Oppdater tilgangsregel
+- `POST /api/AccessRules/{id}/execute` - Utfør tilgangsregel manuelt
+- `GET /api/AccessRules/trigger-types` - Hent tilgjengelige triggertyper
+- `GET /api/AccessRules/action-types` - Hent tilgjengelige aksjonstyper
 
-### Prerequisites
+### Tilgangstildelinger
+
+- `GET /api/AccessAssignments` - List tilgangstildelinger med paginering
+- `GET /api/AccessAssignments/{id}` - Hent spesifikk tilgangstildeling
+- `POST /api/AccessAssignments` - Opprett ny tilgangstildeling
+- `PUT /api/AccessAssignments/{id}` - Oppdater tilgangstildeling
+- `GET /api/AccessAssignments/user/{userId}` - Hent tildelinger for bruker
+- `GET /api/AccessAssignments/system/{targetSystemId}` - Hent tildelinger for system
+- `GET /api/AccessAssignments/assignment-types` - Hent tilgjengelige tildelingstyper
+
+### Synkroniseringslogger
+
+- `GET /api/SyncLogs` - List synkroniseringslogger med paginering
+- `GET /api/SyncLogs/{id}` - Hent spesifikk synkroniseringslogg
+- `POST /api/SyncLogs` - Opprett ny synkroniseringslogg
+- `PUT /api/SyncLogs/{id}` - Oppdater synkroniseringslogg
+- `GET /api/SyncLogs/integration-system/{integrationSystemId}` - Hent logger for integrasjonssystem
+- `GET /api/SyncLogs/sync-statuses` - Hent tilgjengelige synkroniseringsstatuser
+- `GET /api/SyncLogs/summary` - Hent sammendrag av synkroniseringsaktivitet
+- `GET /api/SyncLogs/failed` - Hent feilede synkroniseringer
+
+## Datamodell
+
+### Kjerneentiteter
+
+1. **IntegrationSystem**: Eksterne systemer å integrere med
+   - Håndterer systemkonfigurasjon, tilkoblingsstrenger og autentiseringstyper
+   - Støtter Database, LDAP, OAuth2, SAML, JWT, ApiKey autentisering
+
+2. **EntityDefinition**: Definerer struktur av entiteter innenfor et system
+   - Knyttet til et integrasjonssystem
+   - Inneholder tabellnavn, primærnøkkel og sorteringsrekkefølge
+
+3. **PropertyDefinition**: Definerer egenskaper/attributter for entiteter
+   - Støtter ulike datatyper og valideringsregler
+   - Kan være påkrevd, unike eller ha standardverdier
+
+4. **EntityInstance**: Faktiske instanser av entiteter
+   - Representerer spesifikke poster i systemet
+   - Knyttet til en entitetsdefinisjon
+
+5. **PropertyValue**: Verdier for entitetsegenskaper (EAV-mønster)
+   - Historikksporing av verdiendringer
+   - Støtter alle definerte datatyper
+
+6. **AccessRule**: Forretningsregler for tilgangstildeling
+   - Automatiske triggere basert på egenskapsendringer
+   - Konfigurerbare aksjoner for tilgangsstyring
+
+7. **AccessAssignment**: Bruker-rolle-system kartlegging
+   - Håndterer direkte, arvede, automatiske og midlertidige tildelinger
+   - Sporer tildeling og utløpsdatoer
+
+8. **SyncLog**: Synkroniseringsaktivitetslogger
+   - Sporer alle synkroniseringsoperasjoner
+   - Inneholder feilmeldinger og ytelsesstatistikk
+
+### Støttede datatyper
+
+- **Tekst**: String
+- **Numerisk**: Integer, Decimal
+- **Logisk**: Boolean
+- **Temporal**: DateTime, Date, Time
+- **Spesialisert**: Email, Phone, Url
+- **Strukturert**: List, Json
+
+### Autentiseringstyper
+
+- **Database**: Tradisjonell database-autentisering
+- **LDAP**: Active Directory integrasjon
+- **OAuth2**: Moderne OAuth2-flow
+- **SAML**: Enterprise Single Sign-On
+- **JWT**: JSON Web Token autentisering
+- **ApiKey**: API-nøkkel basert autentisering
+
+### Tildelingstyper
+
+- **Direct**: Direkte tildelt av administrator
+- **Inherited**: Arvet fra gruppe eller organisasjonsstruktur
+- **Automatic**: Automatisk tildelt basert på regler
+- **Temporary**: Midlertidig tildeling med utløpsdato
+
+### Triggertyper for tilgangsregler
+
+- **PropertyChange**: Utløses ved egenskapsendringer
+- **NewEntity**: Utløses ved opprettelse av ny entitet
+- **EntityUpdate**: Utløses ved oppdatering av entitet
+- **EntityDelete**: Utløses ved sletting av entitet
+- **Schedule**: Tidsbaserte triggere
+- **Manual**: Manuell utførelse
+
+### Aksjonstyper for tilgangsregler
+
+- **AssignRole**: Tildel rolle til bruker
+- **RemoveRole**: Fjern rolle fra bruker
+- **UpdateProperty**: Oppdater entitetsegenskap
+- **CreateEntity**: Opprett ny entitet
+- **DeleteEntity**: Slett entitet
+- **SendNotification**: Send varsling
+
+## Kom i gang
+
+### Forutsetninger
 
 - .NET 9 SDK
 - IDE (Visual Studio, VS Code, JetBrains Rider)
+- Valgfritt: SQL Server for produksjonsdatabase
 
-### Running the Application
+### Kjøre applikasjonen
 
-1. Clone or navigate to the project directory:
+1. Klon eller naviger til prosjektmappen:
+
    ```bash
    cd SP.RBAC.API
    ```
 
-2. Restore packages:
+2. Gjenopprett pakker:
+
    ```bash
    dotnet restore
    ```
 
-3. Build the project:
+3. Bygg prosjektet:
+
    ```bash
    dotnet build
    ```
 
-4. Run the application:
+4. Kjør applikasjonen:
+
    ```bash
    dotnet run
    ```
 
-5. Open your browser and navigate to `http://localhost:5109` to access the Swagger UI
+5. Åpne nettleseren og naviger til `http://localhost:5109` for å få tilgang til Swagger UI
 
-### Sample Data
+### Eksempeldata
 
-The application automatically seeds sample data on startup:
+Applikasjonen initialiserer automatisk eksempeldata ved oppstart:
 
-- **HR System**: Human Resources integration system
-- **EMR System**: Electronic Medical Records system
-- **User Entity Definition**: With properties like EmployeeId, FirstName, LastName, Email, Department
-- **Sample Users**: John Doe and Jane Smith with property values
+- **HR-system**: Personaladministrasjonssystem
+- **EMR-system**: Elektroniske pasientjournaler
+- **Brukerdefinisjon**: Med egenskaper som EmployeeId, FirstName, LastName, Email, Department
+- **Eksempelbrukere**: John Doe og Jane Smith med egenskapsverdier
+- **Tilgangsregler**: Automatiske regler for rolletildeling
+- **Tilgangstildelinger**: Eksempel bruker-rolle kartlegginger
 
-## API Usage Examples
+## API-brukseksempler
 
-### Create Integration System
+### Opprett integrasjonssystem
 
 ```bash
 curl -X POST "http://localhost:5109/api/IntegrationSystems" \
@@ -163,7 +282,7 @@ curl -X POST "http://localhost:5109/api/IntegrationSystems" \
   -d '{
     "name": "CRM_System",
     "displayName": "Customer Relationship Management",
-    "description": "Sales and customer management system",
+    "description": "Salgs- og kundebehandlingssystem",
     "systemType": "CRM",
     "systemVersion": "1.5.2",
     "connectionString": "Server=crm-db;Database=CRM;Trusted_Connection=true;",
@@ -173,13 +292,13 @@ curl -X POST "http://localhost:5109/api/IntegrationSystems" \
   }'
 ```
 
-### Get Integration Systems
+### Hent integrasjonssystemer
 
 ```bash
 curl "http://localhost:5109/api/IntegrationSystems?pageNumber=1&pageSize=10"
 ```
 
-### Create Entity Definition
+### Opprett entitetsdefinisjon
 
 ```bash
 curl -X POST "http://localhost:5109/api/EntityDefinitions" \
@@ -187,8 +306,8 @@ curl -X POST "http://localhost:5109/api/EntityDefinitions" \
   -d '{
     "integrationSystemId": "your-integration-system-id",
     "name": "Customer",
-    "displayName": "Customer Record",
-    "description": "Customer information from CRM",
+    "displayName": "Kundeinformasjon",
+    "description": "Kundeinformasjon fra CRM",
     "tableName": "customers",
     "primaryKeyField": "customer_id",
     "isActive": true,
@@ -196,13 +315,31 @@ curl -X POST "http://localhost:5109/api/EntityDefinitions" \
   }'
 ```
 
-## Configuration
+### Opprett tilgangsregel
+
+```bash
+curl -X POST "http://localhost:5109/api/AccessRules" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Auto_Role_Assignment",
+    "description": "Automatisk rolletildeling basert på avdeling",
+    "triggerType": 0,
+    "actionType": 0,
+    "conditions": "{\"department\": \"IT\"}",
+    "actions": "{\"assignRole\": \"ITAdmin\"}",
+    "isActive": true,
+    "priority": 10
+  }'
+```
+
+## Konfigurasjon
 
 ### Database
 
-By default, the application uses Entity Framework Core In-Memory database for easy testing. To use SQL Server:
+Som standard bruker applikasjonen Entity Framework Core In-Memory database for enkel testing. For å bruke SQL Server:
 
-1. Add connection string to `appsettings.json`:
+1. Legg til tilkoblingsstreng i `appsettings.json`:
+
    ```json
    {
      "ConnectionStrings": {
@@ -211,42 +348,57 @@ By default, the application uses Entity Framework Core In-Memory database for ea
    }
    ```
 
-2. The application will automatically use SQL Server when a connection string is provided.
+2. Applikasjonen vil automatisk bruke SQL Server når en tilkoblingsstreng er oppgitt.
 
 ### CORS
 
-CORS is enabled with an "AllowAll" policy for development. Update the CORS configuration in `Program.cs` for production use.
+CORS er aktivert med en "AllowAll"-policy for utvikling. Oppdater CORS-konfigurasjonen i `Program.cs` for produksjonsbruk.
 
-## Features & Capabilities
+### Logging
 
-- **Soft Delete**: All entities support soft delete (IsDeleted flag)
-- **Audit Trail**: Track creation/modification timestamps and users
-- **Optimistic Concurrency**: Version control with RowVersion
-- **Validation**: Entity validation and business rule enforcement
-- **Pagination**: Consistent pagination across all list endpoints
-- **Filtering**: Search and filter capabilities on list endpoints
-- **Error Handling**: Comprehensive error handling with appropriate HTTP status codes
-- **Logging**: Structured logging throughout the application
+Applikasjonen bruker strukturert logging med støtte for:
 
-## Future Enhancements
+- Console-logging for utvikling
+- File-logging for produksjon
+- Application Insights for Azure-deployment
 
-- Authentication/Authorization (JWT tokens)
-- Real integration system connectors
-- Background synchronization services
-- Advanced access rule engine
-- Audit log endpoints
-- Bulk operations
-- Export/Import functionality
-- Real-time notifications
+## Funksjonalitet og egenskaper
 
-## Contributing
+- **Soft Delete**: Alle entiteter støtter soft delete (IsDeleted-flagg)
+- **Audit Trail**: Spor opprettelse/modifikasjon timestamps og brukere
+- **Optimistisk samtidighet**: Versjonskontroll med RowVersion
+- **Validering**: Entitetsvalidering og forretningsregelshåndhevelse
+- **Paginering**: Konsistent paginering på tvers av alle liste-endepunkter
+- **Filtrering**: Søk og filtreringsmuligheter på liste-endepunkter
+- **Feilhåndtering**: Omfattende feilhåndtering med passende HTTP-statuskoder
+- **Logging**: Strukturert logging gjennom hele applikasjonen
+- **Caching**: Redis-støtte for ytelsesoptimalisering
+- **Validering**: Omfattende inputvalidering og forretningsregler
 
-This is a demonstration project showcasing:
-- Clean architecture principles
-- RESTful API design
-- Entity Framework Core best practices
-- AutoMapper usage
-- Comprehensive CRUD operations
-- Proper error handling and validation
+## Fremtidige forbedringer
 
-The project serves as a foundation for building more complex role-based access control systems with integration capabilities.
+- **Autentisering/Autorisasjon**: JWT-tokens og rollebasert tilgangskontroll
+- **Ekte integrasjonskoblinger**: Direkte koblinger til HR/EMR/CRM-systemer
+- **Bakgrunnssynkroniseringstjenester**: Automatiserte datasynkroniseringsjobber
+- **Avansert tilgangsregelmotor**: Komplekse forretningsregler og workflows
+- **Audit log-endepunkter**: Detaljert sporingslogging
+- **Bulk-operasjoner**: Masseoppdateringer og -imports
+- **Eksport/Import-funksjonalitet**: Datamigrasjon og backup
+- **Sanntidsvarsler**: WebSocket-baserte oppdateringer
+- **GraphQL API**: Fleksibel dataspørring
+- **Mikroservicer-arkitektur**: Skalerbar distribuert arkitektur
+
+## Bidrag
+
+Dette er et demonstrasjonsprosjekt som viser:
+
+- Clean architecture-prinsipper
+- RESTful API-design
+- Entity Framework Core beste praksis
+- AutoMapper-bruk
+- Omfattende CRUD-operasjoner
+- Riktig feilhåndtering og validering
+- Moderne .NET 9-funksjoner
+- Skalerbar arkitekturdesign
+
+Prosjektet fungerer som et fundament for å bygge mer komplekse rollebaserte tilgangskontrollsystemer med integrasjonsmuligheter.
