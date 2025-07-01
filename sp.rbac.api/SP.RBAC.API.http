@@ -1,0 +1,6 @@
+@SP.RBAC.API_HostAddress = http://localhost:5109
+
+GET {{SP.RBAC.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,12 @@
+{
+  "Version": 1,
+  "Hash": "uu4OyQ6qIPQyEcZuRzzCu9zpNRyC9WSS4/RVSDPiT6A=",
+  "Source": "SP.RBAC.API",
+  "BasePath": "_content/SP.RBAC.API",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}
