@@ -77,20 +77,234 @@
             <param name="isActive">Active status</param>
             <returns>Updated access assignment</returns>
         </member>
+        <member name="T:SP.RBAC.API.Controllers.AccessRulesController">
+            <summary>
+            Administrerer tilgangsregler som definerer automatiserte sikkerhetsregler og tilgangskontroll
+            </summary>
+            <remarks>
+            Tilgangsregler utgjør kjernen i RBAC-systemets sikkerhetshåndtering og automatiserte tilgangsstyring.
+            Hver regel definerer betingelser og handlinger som utføres automatisk basert på definerte triggere.
+            
+            **Hovedfunksjoner:**
+            - Definere automatiserte sikkerheetsregler og tilgangspolicyer
+            - Konfigurere trigger-betingelser for regelaktivering
+            - Administrere handlinger som utføres når regler aktiveres
+            - Overvåke regelutførelse og auditere sikkerhetshendelser
+            
+            **Regeltyper og triggere:**
+            - **OnCreate**: Aktiveres når nye entiteter eller brukere opprettes
+            - **OnUpdate**: Utløses ved endringer i eksisterende data eller tilganger
+            - **OnDelete**: Triggeres ved sletting eller deaktivering
+            - **OnLogin**: Aktiveres ved brukerinnlogging og autentisering
+            - **OnAccess**: Utløses ved forsøk på tilgang til beskyttede ressurser
+            - **Scheduled**: Periodiske kjøringer basert på tidsskjema
+            - **Manual**: Manuell aktivering av administratorer
+            
+            **Handlingstyper:**
+            - **Grant**: Tildel tilgang eller rettigheter til brukere/grupper
+            - **Revoke**: Fjern eksisterende tilganger og rettigheter
+            - **Modify**: Modifiser eksisterende tilgangsnivåer eller scope
+            - **Notify**: Send varsling til administratorer eller brukere
+            - **Log**: Registrer sikkerhetshendelser for auditformål
+            - **Block**: Blokker tilgang og stopp videre behandling
+            - **Approve**: Krev godkjenning før handling utføres
+            - **Escalate**: Eskalering til høyere sikkerhetsnivå
+            
+            **Prioriteringssystem:**
+            - Regler kjøres i prioriteringsrekkefølge (lavest nummer først)
+            - Konflikthåndtering mellom motstridende regler
+            - Override-mekanismer for kritiske sikkerhetsregler
+            - Fallback-handling ved regelfeil eller utilgjengelighet
+            
+            **Sikkerhetsaspekter:**
+            - Kryptering av sensitive regelparametere og betingelser
+            - Rollebasert tilgang til regeladministrasjon
+            - Segregering av regeldomener etter organisasjonskontekst
+            - Auditlogging av alle regelendringer og utførelser
+            
+            **Integrasjon og ytelse:**
+            - Asynkron regelutførelse for ytelse og skalerbarhet
+            - Caching av hyppig brukte regler og evalueringsresultater
+            - Bulkoperasjoner for effektiv behandling av store datamengder
+            - Overvåking av regelutførelse og ytelsesmetrikker
+            
+            **Compliance og etterlevelse:**
+            - GDPR-kompatible personvernregler og databehandling
+            - SOX-compliance for finansielle tilgangskontroller
+            - ISO 27001 sikkerhetsstandarder og beste praksis
+            - Dokumentasjon for revisjon og compliance-rapportering
+            </remarks>
+        </member>
         <member name="M:SP.RBAC.API.Controllers.AccessRulesController.GetAccessRules(System.Int32,System.Int32,System.String,System.Nullable{System.Guid},System.Nullable{SP.RBAC.API.Entities.TriggerType},System.Nullable{SP.RBAC.API.Entities.ActionType},System.Nullable{System.Boolean})">
             <summary>
-            Get all access rules with pagination
+            Hent paginerte tilgangsregler med avansert filtrering og sikkerhetskontekst
             </summary>
+            <remarks>
+            Returnerer en paginert liste over tilgangsregler med omfattende filtrerings- og sikkerhetskontrollmuligheter.
+            Operasjonen respekterer brukerens tilgangsnivå og viser kun regler brukeren har tilgang til å se.
+            
+            **Filtreringsmuligheter:**
+            - Integrasjonssystem: Vis regler knyttet til spesifikke eksterne systemer
+            - Trigger-type: Filtrer på hvilke hendelser som aktiverer regelen
+            - Handlingstype: Begrens til spesifikke handlinger (Grant, Revoke, Notify, osv.)
+            - Aktivitetsstatus: Inkluder kun aktive eller inkluder deaktiverte regler
+            - Fritekst søk: Søk i regelnavn og beskrivelse for rask lokalisering
+            
+            **Sikkerhetskontrollene:**
+            - Viser kun regler brukeren har tilgang til basert på RBAC-rettigheter
+            - Sensitive regelparametere filtreres ut for ikke-privilegerte brukere
+            - Auditlogging av hvem som har sett på hvilke sikkerheitsregler
+            - Rate limiting for å forhindre rekognosering av sikkerhetskonfigurasjoner
+            
+            **Sorteringslogikk:**
+            - Primær: Sortert etter prioritet for å vise kritiske regler først
+            - Sekundær: Alfabetisk etter navn for konsistent navigering
+            - Terciary: Opprettelsesdato for kronologisk oversikt
+            - Fiksert sortering sikrer forutsigbar rekkefølge ved paginering
+            
+            **Bruksscenarioer:**
+            - Sikkerhetsdashboard for systemadministratorer
+            - Compliance-rapportering og revisjonsverktøy
+            - Feilsøking av tilgangsproblemer og sikkerhetsbrudd
+            - Konfigurasjonsvalidering før produksjonsendringer
+            
+            **Ytelsesoptimalisering:**
+            - Indeksering på kritiske søkekriterier og filtreringsfelt
+            - Caching av hyppig brukte regeloversikter
+            - Lazy loading av komplekse regelparametere og betingelser
+            - Optimaliserte databasespørringer for store regelsett
+            
+            **Overvåking og analyse:**
+            - Metrikker for regelutførelse og ytelse
+            - Statistikk over regelaktivering og suksessrater
+            - Trendeanalyse for sikkerhetsmønstre og anomalier
+            - Dashboards for real-time sikkerhetsstatus
+            </remarks>
+            <param name="pageNumber">Sidenummer for paginering (starter på 1)</param>
+            <param name="pageSize">Antall elementer per side (1-100)</param>
+            <param name="search">Fritekst søketerm for regelnavn og beskrivelse</param>
+            <param name="integrationSystemId">Filtrer etter spesifikt integrasjonssystem</param>
+            <param name="triggerType">Filtrer etter trigger-type (OnCreate, OnLogin, Scheduled, osv.)</param>
+            <param name="actionType">Filtrer etter handlingstype (Grant, Revoke, Notify, osv.)</param>
+            <param name="isActive">Filtrer på aktivitetsstatus (true=aktive, false=inaktive, null=alle)</param>
+            <returns>Paginert liste med tilgangsregler og sikkerhetskontekst</returns>
+            <response code="200">Tilgangsregler hentet vellykket</response>
+            <response code="400">Ugyldig forespørsel eller parametere</response>
+            <response code="403">Utilstrekkelige rettigheter for å se tilgangsregler</response>
+            <response code="500">Intern serverfeil oppstod</response>
         </member>
         <member name="M:SP.RBAC.API.Controllers.AccessRulesController.GetAccessRule(System.Guid)">
             <summary>
-            Get a specific access rule by ID
+            Hent en spesifikk tilgangsregel med komplette sikkerhetsdetaljer
             </summary>
+            <remarks>
+            Returnerer detaljert informasjon om en enkelt tilgangsregel inkludert komplett konfigurasjon og sikkerhetsparametere.
+            Operasjonen validerer brukerens tilgang og logger åpning av sensitive sikkerhetskonfigurasjoner.
+            
+            **Inkluderte sikkerhetsdetaljer:**
+            - Komplette trigger-betingelser og aktivering-kriterier
+            - Detaljerte handlingskonfigurasjoner og målparametere
+            - Historisk utførelsesdata og resultatlogger
+            - Prioritering og konflikthåndtering med andre regler
+            
+            **Bruksscenarioer:**
+            - Detaljert konfigurasjon og redigering av sikkerheitsregler
+            - Feilsøking av tilgangsproblemer og regelaktivering
+            - Compliance-dokumentasjon og revisjonsrutiner
+            - Sikkerhetsevaluering og riskovurdering
+            
+            **Sensitiv informasjon:**
+            - Detaljerte regelparametere som kan avdekke sikkerhetshull
+            - Konfigurasjon av kritiske sikkerhetssystemer
+            - Integrering med eksterne autentiseringstjenester
+            - Logging av tilgangsmønstre og brukeradferd
+            
+            **Sikkerhetskontroller:**
+            - Verifisering av brukerrettigheter for regellesing
+            - Auditlogging av hvem som har tilgang til regeldetaljer
+            - Maskering av sensitive parametere for ikke-privilegerte brukere
+            - Rate limiting for å forhindre rekognosering
+            
+            **Ytelsesdata og metrikker:**
+            - Siste utførelsestidspunkt og resultater
+            - Statistikk over regelsuksess og feilrater
+            - Gjennomsnittlig utførelsestid og ressursbruk
+            - Trender og mønstre i regelaktivering
+            
+            **Integrasjonsdetaljer:**
+            - Tilkobling til eksterne sikkerhetssystemer
+            - API-endepunkter og autentiseringskonfigurering
+            - Datasynkronisering og konsistenssjekker
+            - Failover og redundanshåndtering
+            </remarks>
+            <param name="id">Unik identifikator for tilgangsregelen</param>
+            <returns>Detaljerte sikkerhetsopplysninger om tilgangsregelen</returns>
+            <response code="200">Tilgangsregel funnet og returnert</response>
+            <response code="403">Utilstrekkelige rettigheter for å se regeldetaljer</response>
+            <response code="404">Tilgangsregel ikke funnet med angitt ID</response>
+            <response code="500">Intern serverfeil oppstod</response>
         </member>
         <member name="M:SP.RBAC.API.Controllers.AccessRulesController.CreateAccessRule(SP.RBAC.API.DTOs.CreateAccessRuleDto)">
             <summary>
-            Create a new access rule
+            Opprett ny tilgangsregel med avansert sikkerhetsvalidering
             </summary>
+            <remarks>
+            Oppretter en ny tilgangsregel med omfattende sikkerhetskontroller og validering av forretningslogikk.
+            Operasjonen sikrer at regelen ikke kan skape sikkerhetshull eller motstridende tilgangskontroller.
+            
+            **Valideringsprosess:**
+            1. Verifiserer at tilknyttet integrasjonssystem eksisterer og er aktivt
+            2. Sjekker for navnekonflikter og regeloverlapp med eksisterende konfigurasjoner
+            3. Validerer trigger-betingelser og handlingskonfigurasjoner for logisk konsistens
+            4. Kontrollerer forretningsregler og sikkerhetskompliance-krav
+            5. Tester regel-syntaks og utførelsesmuligheter uten aktivering
+            
+            **Sikkerhetskontroller:**
+            - Validering av privilegerte handlinger (Grant/Revoke) krever høye rettigheter
+            - Kritiske system-regler krever godkjenning fra flere administratorer
+            - Automatisk klassifisering av regelen basert på risiko og påvirkning
+            - Sanksjonssjekk mot kjendte angrepsscenarioer og sikkerhetshull
+            
+            **Regelkonfigurasjon:**
+            - Trigger-betingelser: JSON-baserte betingelser med validering
+            - Handlingsparametere: Strukturerte konfigurasjonsobjekter
+            - Prioriteringshåndtering: Automatisk plassering i regelkjeden
+            - Tidsbaserte regler: Cron-uttrykk for planlagte utførelser
+            
+            **Integrasjonshåndtering:**
+            - Tilkobling til eksterne sikkerhetssystemer og identitetsleverandører
+            - API-validering og autentiseringskonfigurasjon
+            - Datasynkronisering og konsistenssjekker
+            - Feilhåndtering og redundans-planlegging
+            
+            **Forretningsregler:**
+            - Unike regelnavn på tvers av hele systemet
+            - Konsistente trigger- og handlingskombinasjoner
+            - Validering av regellogikk mot eksisterende sikkerhetspolicyer
+            - Konfliktdeteksjon med eksisterende tilgangskontroller
+            
+            **Eksempel request:**
+            ```json
+            {
+              "name": "EmployeeOffboardingAccessRevoke",
+              "description": "Automatisk fjerning av alle tilganger ved avslutning av ansettelse",
+              "triggerType": "OnUpdate",
+              "actionType": "Revoke",
+              "integrationSystemId": "123e4567-e89b-12d3-a456-426614174000",
+              "conditions": "{\"employeeStatus\": \"terminated\", \"department\": \"*\"}",
+              "actionParameters": "{\"revokeAll\": true, \"notifyManager\": true}",
+              "priority": 1,
+              "isActive": false
+            }
+            ```
+            </remarks>
+            <param name="createDto">Konfigurasjon for den nye tilgangsregelen</param>
+            <returns>Opprettet tilgangsregel med generert ID og sikkerhetsstatus</returns>
+            <response code="201">Tilgangsregel opprettet vellykket</response>
+            <response code="400">Ugyldig forespørsel eller valideringsfeil</response>
+            <response code="403">Utilstrekkelige rettigheter for å opprette sikkerhetsregler</response>
+            <response code="409">Navnekonflikt eller regeloverlapp med eksisterende konfigurasjon</response>
+            <response code="500">Intern serverfeil oppstod</response>
         </member>
         <member name="M:SP.RBAC.API.Controllers.AccessRulesController.UpdateAccessRule(System.Guid,SP.RBAC.API.DTOs.UpdateAccessRuleDto)">
             <summary>
@@ -104,8 +318,57 @@
         </member>
         <member name="M:SP.RBAC.API.Controllers.AccessRulesController.ExecuteAccessRule(System.Guid)">
             <summary>
-            Execute an access rule manually
+            Utfør tilgangsregel manuelt med sikkerhetskontroller og auditlogging
             </summary>
+            <remarks>
+            Aktiverer en tilgangsregel manuelt med omfattende sikkerhetskontroller og detaljert auditlogging.
+            Operasjonen krever privilegerte rettigheter og logger alle utførelser for compliance-formål.
+            
+            **Sikkerhetskontroller:**
+            - Verifisering av brukerrettigheter for manuell regelutførelse
+            - Validering av regelstatus og sikkerhetsnivå før aktivering
+            - Kontroll av systembelastning og ressursbruk
+            - Forhindre samtidig utførelse av motstridende regler
+            
+            **Utførelsesprosess:**
+            1. Validerer at regelen er aktiv og konfigurert korrekt
+            2. Sjekker for systemavhengigheter og eksterne tjenester
+            3. Utfører pre-processing og betingelsesesvaluering
+            4. Aktiverer regelhandlinger med transaksjonssikkerhet
+            5. Verifiserer resultat og utfører post-processing
+            6. Logger detaljerte auditdata og resultatmetrikker
+            
+            **Risikohåndtering:**
+            - Dry-run modus for testing uten faktiske endringer
+            - Rollback-mekanismer ved feil eller uventede resultater
+            - Eskalering til systemadministratorer ved kritiske feil
+            - Automatisk deaktivering ved gjentatte feilutførelser
+            
+            **Auditlogging:**
+            - Hvem utførte regelen og når
+            - Hvilke handlinger ble utført og på hvilke ressurser
+            - Resultater og eventuelle feilmeldinger
+            - Påvirkning på brukere og systemtilganger
+            
+            **Ytelseshensyn:**
+            - Asynkron utførelse for tunge operasjoner
+            - Rate limiting for å forhindre systemoverbelastning
+            - Resource pools for effektiv behandling av bulk-operasjoner
+            - Prioriteringskøer for kritiske vs. rutine-operasjoner
+            
+            **Compliance og sporbarhet:**
+            - Detaljerte logs for SOX og GDPR compliance
+            - Immutable audit trail med kryptografisk signering
+            - Real-time varsling til compliance-team ved kritiske endringer
+            - Rapporter for revisjon og regulatoriske krav
+            </remarks>
+            <param name="id">Unik identifikator for tilgangsregelen som skal utføres</param>
+            <returns>Utførelsesresultat med detaljert status og auditinformasjon</returns>
+            <response code="200">Tilgangsregel utført vellykket</response>
+            <response code="400">Kan ikke utføre inaktiv eller ugyldig regel</response>
+            <response code="403">Utilstrekkelige rettigheter for manuell regelutførelse</response>
+            <response code="404">Tilgangsregel ikke funnet med angitt ID</response>
+            <response code="500">Intern serverfeil oppstod under regelutførelse</response>
         </member>
         <member name="M:SP.RBAC.API.Controllers.AccessRulesController.GetTriggerTypes">
             <summary>
@@ -114,8 +377,56 @@
         </member>
         <member name="M:SP.RBAC.API.Controllers.AccessRulesController.GetActionTypes">
             <summary>
-            Get available action types
+            Hent tilgjengelige handlingstyper for tilgangsregler med kategorisering og beskrivelser
             </summary>
+            <remarks>
+            Returnerer en strukturert oversikt over alle tilgjengelige handlingstyper som kan konfigureres
+            i tilgangsregler. Hver handlingstype inkluderer metadata om konfigurasjon, sikkerhetsnivå,
+            og forventet oppførsel i ulike kontekster.
+            
+            **Handlingskategorier:**
+            - **Grant Actions:** Tildeling av rettigheter og tilganger
+            - **Revoke Actions:** Fjerning av rettigheter og tilganger  
+            - **Notification Actions:** Varsling og kommunikasjon
+            - **Workflow Actions:** Automatiserte arbeidsflytsteg
+            - **Audit Actions:** Logging og sporingshandlinger
+            - **Integration Actions:** Eksterne systeminteraksjoner
+            
+            **Sikkerhetsvurderinger:**
+            - Risk Score: Numerisk vurdering av potensiell påvirkning (1-10)
+            - Required Permissions: Nødvendige rettigheter for utførelse
+            - Approval Requirements: Krav til godkjenning før aktivering
+            - Reversibility: Mulighet for å reversere handlingen
+            
+            **Konfigurasjonsmetadata:**
+            - Påkrevde parametere og deres datatyper
+            - Valgfrie konfigurasjonsinnstillinger
+            - Validerings- og formatregler
+            - Eksempelkonfigurasjoner for vanlige brukstilfeller
+            
+            **Integrasjonsstøtte:**
+            - Eksterne API-endepunkter og protokoller
+            - Timeout-innstillinger og retry-logikk
+            - Error handling og fallback-strategier
+            - Rate limiting og throttling-konfigurasjon
+            
+            **Brukseksempler:**
+            - GrantAccess: Tildele tilgang til spesifikke ressurser
+            - RevokeAccess: Fjerne tilgang basert på betingelser
+            - SendNotification: Sende varsler til brukere eller administratorer
+            - UpdateProperty: Oppdatere egenskaper på entiteter
+            - CreateAuditLog: Generere detaljerte auditlogger
+            - TriggerWorkflow: Starte automatiserte arbeidsprosesser
+            
+            **Ytelse og skalerbarhet:**
+            - Asynkrone vs. synkrone handlinger
+            - Batch-processing muligheter
+            - Resource consumption estimates
+            - Concurrent execution limitations
+            </remarks>
+            <returns>Liste over alle tilgjengelige handlingstyper med metadata og konfigurasjonsinformasjon</returns>
+            <response code="200">Handlingstyper hentet vellykket</response>
+            <response code="500">Intern serverfeil oppstod under henting av handlingstyper</response>
         </member>
         <member name="M:SP.RBAC.API.Controllers.AuditController.GetEntityHistory(System.String,System.String,System.Int32,System.Int32,System.Threading.CancellationToken)">
             <summary>
@@ -633,35 +944,384 @@
             Test connection to an integration system
             </summary>
         </member>
+        <member name="T:SP.RBAC.API.Controllers.PropertyDefinitionsController">
+            <summary>
+            Administrerer egenskapsdefinisjonene som definerer datastrukturer og validering for entiteter
+            </summary>
+            <remarks>
+            Egenskapsdefinisjonene utgjør fundamentet for datamodellering og strukturering i RBAC-systemet.
+            Hver definisjon spesifiserer hvordan data skal struktureres, valideres og presenteres.
+            
+            **Hovedfunksjoner:**
+            - Definere datatyper og valideringsregler for entitetsegenskaper
+            - Konfigurere visningslogikk og brukergrensesnitt-parametere
+            - Administrere obligatoriske felt og unike restriksjoner
+            - Etablere datakonsistens på tvers av systemintegrasjoner
+            
+            **Datatyper støttet:**
+            - String: Tekstdata med lengdebegrensninger og mønstre
+            - Integer: Heltall med verdiområde-validering
+            - Decimal: Desimaltall for presise beregninger
+            - Boolean: Sann/usann verdier for tilstand og flagg
+            - DateTime: Tids- og datostempel med timezone-håndtering
+            - Guid: Universelle unike identifikatorer
+            - Email: E-postadresser med format-validering
+            - Phone: Telefonnummer med lands- og formatstøtte
+            - Url: Web-adresser med protokoll-validering
+            - Json: Strukturerte JSON-objekter for komplekse data
+            
+            **Valideringsalternativer:**
+            - Obligatoriske felt (required) med tilpassede feilmeldinger
+            - Unike verdier (unique) med konfliktløsning
+            - Verdiområder (range) for numeriske og datofelt
+            - Regulære uttrykk (regex) for mønstervalidering
+            - Tilpassede valideringsregler med forretningslogikk
+            
+            **Integrasjonsscenarioer:**
+            - Ekstern systemmapping via IntegrationMapping-entiteter
+            - API-responsskjema for konsistente datastrukturer
+            - Brukergrensesnitt-generering basert på metadata
+            - Rapportkolonner og filtreringsparametere
+            
+            **Sikkerhet og etterlevelse:**
+            - Datakategorisering for personvern (GDPR-merking)
+            - Krypteringskrav for sensitive datatyper
+            - Auditlogging av alle strukturelle endringer
+            - Tilgangskontroll basert på datakategori
+            </remarks>
+        </member>
         <member name="M:SP.RBAC.API.Controllers.PropertyDefinitionsController.GetPropertyDefinitions(System.Int32,System.Int32,System.String,System.Nullable{System.Guid},System.Nullable{SP.RBAC.API.Entities.DataType})">
             <summary>
-            Get all property definitions with pagination
+            Hent paginerte egenskapsdefinisjonene med filtrering og søk
             </summary>
+            <remarks>
+            Returnerer en paginert liste over egenskapsdefinisjonene med avanserte filtrerings- og søkemuligheter.
+            Støtter søk på tvers av navn, visningsnavn og beskrivelse for effektiv navigering.
+            
+            **Filtreringsmuligheter:**
+            - Entitetsdefinisjon: Filtrer egenskaper tilhørende spesifikke entiteter
+            - Datatype: Begrens resultater til bestemte datatyper
+            - Fritekst søk: Søk i navn, visningsnavn og beskrivelse
+            - Aktive/inaktive: Inkluder eller ekskluder slettet/deaktiverte egenskaper
+            
+            **Sorteringslogikk:**
+            - Primær: Sortert etter SortOrder for logisk gruppering
+            - Sekundær: Alfabetisk etter navn for konsistent presentasjon
+            - Stabil sortering sikrer forutsigbar rekkefølge på tvers av sider
+            
+            **Bruksscenarioer:**
+            - Administrasjonsgrensesnitt for systemkonfigurasjon
+            - API-dokumentasjon og skjemavalidering
+            - Integrasjonsmapping og datafelt-utforskning
+            - Rapportkolonne-utvalg og filterkonfigurasjon
+            
+            **Ytelsesoptimalisering:**
+            - Effektiv indeksering på søkekriterier
+            - Lazy loading av relasjonelle data
+            - Caching av hyppig brukte egenskapsgrupper
+            
+            **Paginering:**
+            - Minimums sidestørrelse: 1, maksimum: 100
+            - Standard sidestørrelse: 10 for optimal brukervennlighet
+            - Totalt antall for progressindikatorer
+            </remarks>
+            <param name="pageNumber">Sidenummer for paginering (starter på 1)</param>
+            <param name="pageSize">Antall elementer per side (1-100)</param>
+            <param name="search">Fritekst søketerm for navn, visningsnavn og beskrivelse</param>
+            <param name="entityDefinitionId">Filtrer etter spesifikk entitetsdefinisjon</param>
+            <param name="dataType">Filtrer etter datatype (String, Integer, Boolean, osv.)</param>
+            <returns>Paginert liste med egenskapsdefinisjonene og metadata</returns>
+            <response code="200">Egenskapsdefinisjonene hentet vellykket</response>
+            <response code="400">Ugyldig forespørsel eller parametere</response>
+            <response code="500">Intern serverfeil oppstod</response>
         </member>
         <member name="M:SP.RBAC.API.Controllers.PropertyDefinitionsController.GetPropertyDefinition(System.Guid)">
             <summary>
-            Get a specific property definition by ID
+            Hent en spesifikk egenskapsdefinisjon med komplette detaljer
             </summary>
+            <remarks>
+            Returnerer detaljert informasjon om en enkelt egenskapsdefinisjon inkludert:
+            - Fullstendige metadata og konfigurasjonsparametere
+            - Tilknyttet entitetsdefinisjon med kontekstuell informasjon
+            - Valideringsregler og forretningslogikk-konfigurasjoner
+            - Integrasjonsmapping og eksterne systemreferanser
+            
+            **Bruksscenarioer:**
+            - Detaljert konfigurasjon og redigering av egenskaper
+            - Validering av datastruktur før integrasjonsopprettelse
+            - Analyse av egenskapsavhengigheter og dataflyt
+            - Generering av brukergrensesnitt-komponenter
+            
+            **Inkluderte data:**
+            - Grunnleggende metadata: Navn, visningsnavn, beskrivelse
+            - Tekniske parametere: Datatype, validering, unike restriksjoner
+            - Presentasjonslogikk: Sorteringsrekkefølge, visningsregler
+            - Relasjonsdata: Tilknyttet entitetsdefinisjon og organisasjon
+            
+            **Valideringsdata:**
+            - Min/maks verdier for numeriske og datofelt
+            - Påkrevd/valgfri status med tilpassede feilmeldinger
+            - Regulære uttrykk for mønstervalidering
+            - Tilpassede forretningsregler og integritetssjekker
+            
+            **Integrasjonsrelevans:**
+            - Mapping til eksterne systemfelt og datakilder
+            - API-skjemavalidering for inngående data
+            - Datatransformasjon og formatkonvertering
+            - Sikkerhetskategorisering for databeskyttelse
+            </remarks>
+            <param name="id">Unik identifikator for egenskapsdefinisjon</param>
+            <returns>Detaljerte opplysninger om egenskapsdefinisjon</returns>
+            <response code="200">Egenskapsdefinisjon funnet og returnert</response>
+            <response code="404">Egenskapsdefinisjon ikke funnet med angitt ID</response>
+            <response code="500">Intern serverfeil oppstod</response>
         </member>
         <member name="M:SP.RBAC.API.Controllers.PropertyDefinitionsController.CreatePropertyDefinition(SP.RBAC.API.DTOs.CreatePropertyDefinitionDto)">
             <summary>
-            Create a new property definition
+            Opprett ny egenskapsdefinisjon med validering og konsistenssjekking
             </summary>
+            <remarks>
+            Oppretter en ny egenskapsdefinisjon med omfattende validering av dataintegritet og forretningsregler.
+            Sikrer konsistens på tvers av entitetsdefinisjoner og forhindrer navnekonflikter.
+            
+            **Valideringsprosess:**
+            1. Verifiserer at tilknyttet entitetsdefinisjon eksisterer og er aktiv
+            2. Sjekker for navnekonflikter innenfor samme entitet
+            3. Validerer datatype-kompatibilitet med eksisterende systemer
+            4. Kontrollerer forretningsregler og integritetsbestemmelser
+            5. Tester valideringsregler for syntaks og utførbarhet
+            
+            **Datatypehåndtering:**
+            - String: Automatisk trimming og lengdevalidering
+            - Numeriske: Verifikasjoner av verdiområder og presisjon
+            - DateTime: Timezone-håndtering og formatstandarder
+            - Email/Phone/Url: Formatvalidering og standardisering
+            - JSON: Skjemavalidering og strukturell integritet
+            
+            **Automatisk konfigurasjon:**
+            - Standard valideringsregler basert på datatype
+            - Anbefalt visningslogikk og sorteringsrekkefølge
+            - Sikkerhetskategorisering basert på navnmønstre
+            - Integrasjonsmapping-forslag for kjente systemtyper
+            
+            **Forretningsregler:**
+            - Unike navn innenfor samme entitetsdefinisjon
+            - Konsistente datatyper for like egenskaper på tvers av entiteter
+            - Påkrevd-flagg kan ikke endres hvis eksisterende data mangler verdier
+            - Valideringsregler må være testbare og deterministiske
+            
+            **Eksempel request:**
+            ```json
+            {
+              "entityDefinitionId": "123e4567-e89b-12d3-a456-426614174000",
+              "name": "Email",
+              "displayName": "E-postadresse",
+              "description": "Brukerens primære e-postadresse for kommunikasjon",
+              "dataType": "Email",
+              "isRequired": true,
+              "isUnique": true,
+              "validationRule": "^[\\w\\.-]+@[\\w\\.-]+\\.[a-zA-Z]{2,}$",
+              "sortOrder": 10
+            }
+            ```
+            </remarks>
+            <param name="createDto">Konfigurasjon for den nye egenskapsdefinisjon</param>
+            <returns>Opprettet egenskapsdefinisjon med generert ID</returns>
+            <response code="201">Egenskapsdefinisjon opprettet vellykket</response>
+            <response code="400">Ugyldig forespørsel eller valideringsfeil</response>
+            <response code="409">Navnekonflikt - egenskapsnavn eksisterer allerede i entiteten</response>
+            <response code="500">Intern serverfeil oppstod</response>
         </member>
         <member name="M:SP.RBAC.API.Controllers.PropertyDefinitionsController.UpdatePropertyDefinition(System.Guid,SP.RBAC.API.DTOs.UpdatePropertyDefinitionDto)">
             <summary>
-            Update an existing property definition
+            Oppdater eksisterende egenskapsdefinisjon med endringssporing
             </summary>
+            <remarks>
+            Oppdaterer en eksisterende egenskapsdefinisjon med omfattende validering og påvirkningsanalyse.
+            Endringer spores og valideres mot eksisterende data og systemavhengigheter.
+            
+            **Oppdateringsmuligheter:**
+            - Visningsmetadata: Navn, visningsnavn, beskrivelse
+            - Valideringsregler: Påkrevd-status, unike restriksjoner, custom validering
+            - Presentasjonslogikk: Sorteringsrekkefølge, grupperingsregler
+            - Sikkerhetskategorisering: Databeskyttelse og tilgangsnivåer
+            
+            **Begrensninger og sikkerhetstiltak:**
+            - Datatype kan ikke endres hvis eksisterende egenskapsverdier finnes
+            - Påkrevd-flagg kan ikke aktiveres hvis eksisterende data har NULL-verdier
+            - Unike restriksjoner valideres mot all eksisterende data
+            - Valideringsregler testes mot eksisterende verdier før aktivering
+            
+            **Påvirkningsanalyse:**
+            - Endring av påkrevd-status påvirker dataintegritetssjekker
+            - Modifikasjon av valideringsregler kan gjøre eksisterende data ugyldig
+            - Navneendringer krever oppdatering av integrasjonsmappinger
+            - Sorteringsrekkefølge-endringer påvirker brukergrensesnitt-layout
+            
+            **Endringssporing:**
+            - Automatisk versjonshåndtering for hver endring
+            - Detaljert auditlogging av hvem, hva og hvorfor
+            - Rollback-muligheter for kritiske systemfeil
+            - Varslinger til avhengige systemer ved strukturelle endringer
+            
+            **Validering av eksisterende data:**
+            - Sjekk om nye valideringsregler er kompatible med eksisterende verdier
+            - Automatisk datamigreringsforslag ved inkompatibilitet
+            - Advarsler om potensielle dataintegritetsbrudd
+            - Mulighet for gradvis utrulling av endringer
+            
+            **Eksempel request:**
+            ```json
+            {
+              "entityDefinitionId": "123e4567-e89b-12d3-a456-426614174000",
+              "name": "EmailAddress",
+              "displayName": "E-postadresse (Primær)",
+              "description": "Brukerens primære e-postadresse for all kommunikasjon og varsling",
+              "dataType": "Email",
+              "isRequired": true,
+              "isUnique": true,
+              "validationRule": "^[\\w\\.-]+@[\\w\\.-]+\\.[a-zA-Z]{2,}$",
+              "sortOrder": 5,
+              "lastModifiedReason": "Oppdatert visningsnavn for bedre brukervennlighet"
+            }
+            ```
+            </remarks>
+            <param name="id">Unik identifikator for egenskapsdefinisjon som skal oppdateres</param>
+            <param name="updateDto">Oppdateringsinformasjon for egenskapsdefinisjon</param>
+            <returns>Oppdatert egenskapsdefinisjon med endringer</returns>
+            <response code="200">Egenskapsdefinisjon oppdatert vellykket</response>
+            <response code="400">Ugyldig forespørsel eller valideringsfeil</response>
+            <response code="404">Egenskapsdefinisjon ikke funnet med angitt ID</response>
+            <response code="409">Navnekonflikt eller dataintegritetsbrudd</response>
+            <response code="500">Intern serverfeil oppstod</response>
         </member>
         <member name="M:SP.RBAC.API.Controllers.PropertyDefinitionsController.DeletePropertyDefinition(System.Guid)">
             <summary>
-            Delete a property definition (soft delete)
+            Deaktiver egenskapsdefinisjon (myk sletting med avhengighetsvalidering)
             </summary>
+            <remarks>
+            Utfører myk deaktivering av en egenskapsdefinisjon etter grundig validering av systemavhengigheter.
+            Operasjonen bevarer alle historiske data while markerer egenskapen som utilgjengelig for nye bruksområder.
+            
+            **Deaktiveringsprosess:**
+            1. Validerer at ingen kritiske systemkomponenter er avhengige av egenskapen
+            2. Sjekker for eksisterende egenskapsverdier som må bevares
+            3. Identifiserer integrasjonsmappinger som påvirkes av endringen
+            4. Markerer som slettet med timestamp og årsaksregistrering
+            5. Opprettholder alle historiske verdier for auditformål
+            
+            **Avhengighetsvalidering:**
+            - Eksisterende PropertyValues: Kan ikke slettes hvis data finnes
+            - IntegrationMappings: Må oppdateres eller deaktiveres først
+            - API-skjemaer: Valider at eksterne systemer ikke er kritisk avhengige
+            - Brukergrensesnitt: Sjekk for hardkodede referanser til egenskapen
+            - Rapporter og analyser: Identifiser hvor egenskapen er i bruk
+            
+            **Datasikkerhet og etterlevelse:**
+            - Alle eksisterende egenskapsverdier bevares for auditformål
+            - Slettingsoperasjonen logges med brukeridentitet og tidsstempel
+            - GDPR-kompatibel deaktivering med mulighet for ekte sletting senere
+            - Backup-rutiner sikrer gjenoppretting ved feilaktig sletting
+            
+            **Gjenopprettingsmuligheter:**
+            - Myk sletting tillater reaktivering av egenskapsdefinisjon
+            - Alle konfigurasjoner og metadata bevares for rask gjenoppretting
+            - Integrasjonsmappinger kan gjenaktiveres uten dataintegritetsbrudd
+            - Versionshistorikk opprettholdes for kompletts sporbarhet
+            
+            **Alternative løsninger:**
+            - Vurder å markere som "deprecated" i stedet for sletting
+            - Bruk "IsActive" flagg for midlertidig deaktivering
+            - Kontakt systemadministrator for komplekse avhengighetsløsninger
+            - Planlegg sletting som del av større dataopprydning
+            
+            **Påvirkningsanalyse:**
+            - Stopper all ny dataregistrering for denne egenskapen
+            - Eksisterende data forblir tilgjengelig for lesing og rapporter
+            - Integrasjoner kan feile hvis de forventer egenskapen
+            - Brukergrensesnitt må oppdateres for å håndtere missing egenskaper
+            </remarks>
+            <param name="id">Unik identifikator for egenskapsdefinisjon som skal deaktiveres</param>
+            <returns>Ingen innhold ved vellykket deaktivering</returns>
+            <response code="204">Egenskapsdefinisjon deaktivert vellykket</response>
+            <response code="400">Kan ikke deaktivere egenskap med aktive avhengigheter</response>
+            <response code="404">Egenskapsdefinisjon ikke funnet med angitt ID</response>
+            <response code="500">Intern serverfeil oppstod</response>
         </member>
         <member name="M:SP.RBAC.API.Controllers.PropertyDefinitionsController.GetDataTypes">
             <summary>
-            Get available data types
+            Hent tilgjengelige datatyper for egenskapsdefinisjonene
             </summary>
+            <remarks>
+            Returnerer en komplett liste over alle støttede datatyper som kan brukes ved opprettelse av egenskapsdefinisjonene.
+            Hver datatype inkluderer metadata om valideringsregler og formatstandarder.
+            
+            **Støttede datatyper:**
+            - **String**: Tekstdata med konfigurerbare lengdebegrensninger
+              - Støtter UTF-8 og internasjonale tegnsett
+              - Automatisk trimming av whitespace
+              - Regex-basert mønstervalidering
+            
+            - **Integer**: Heltallsverdier med verdiområde-kontroll
+              - 32-bit eller 64-bit støtte avhengig av konfigurasjon
+              - Min/maks verdi validering
+              - Automatisk formattering for visning
+            
+            - **Decimal**: Presise desimaltall for finansielle beregninger
+              - Konfigurerbar presisjon og skala
+              - Automatisk avrunding og formattering
+              - Støtte for valutaformater
+            
+            - **Boolean**: Sann/usann verdier med fleksible input-formater
+              - Aksepterer true/false, 1/0, yes/no
+              - Konsistent JSON-serialisering
+              - Brukervennlig visning i grensesnitt
+            
+            - **DateTime**: Komplett dato- og tidshåndtering
+              - UTC og lokal timezone-støtte
+              - ISO 8601 formatstandard
+              - Automatisk parsing av vanlige datoformater
+            
+            - **Guid**: Universelt unike identifikatorer
+              - RFC 4122 kompatible UUIDs
+              - Automatisk generering ved behov
+              - Optimalisert for databaser og indeksering
+            
+            - **Email**: E-postadresser med omfattende validering
+              - RFC 5322 standard validering
+              - Domene-eksistenssjekking (valgfritt)
+              - Automatisk normalisering og case-håndtering
+            
+            - **Phone**: Telefonnummer med internasjonal støtte
+              - E.164 formatstandard
+              - Automatisk lands-kode gjenkjenning
+              - Formattering basert på lokale standarder
+            
+            - **Url**: Web-adresser med protokoll-validering
+              - HTTP/HTTPS protokoll-støtte
+              - Domene og sti-validering
+              - Automatisk URL-encoding ved behov
+            
+            - **Json**: Strukturerte JSON-objekter
+              - Skjemavalidering mot JSON Schema
+              - Dype objektvalidering og type-checking
+              - Optimaliert lagring og indeksering
+            
+            **Bruksscenarioer:**
+            - Dynamisk brukergrensesnitt-generering
+            - API-dokumentasjon og skjemavalidering
+            - Integrasjonsmapping og datatransformasjon
+            - Rapportkolonne-konfigurasjon og filtrering
+            
+            **Implementasjonsdetaljer:**
+            - Alle datatyper støtter null-verdier (nullable)
+            - Automatisk type-konvertering fra strenger
+            - Konsistent feilmeldinger ved valideringsfeil
+            - Ytelsesoptimalisert lagring og indeksering
+            </remarks>
+            <returns>Liste over tilgjengelige datatyper med metadata</returns>
+            <response code="200">Datatyper hentet vellykket</response>
+            <response code="500">Intern serverfeil oppstod</response>
         </member>
         <member name="M:SP.RBAC.API.Controllers.PropertyValuesController.GetPropertyValues(System.Int32,System.Int32,System.Nullable{System.Guid},System.Nullable{System.Guid},System.Nullable{System.Boolean},System.String)">
             <summary>
@@ -820,53 +1480,393 @@
         </member>
         <member name="T:SP.RBAC.API.Controllers.SystemRelationshipController">
             <summary>
-            Controller for managing relationships between integration systems
+            Administrerer relasjoner og integrasjoner mellom eksterne integrasjonssystemer
             </summary>
+            <remarks>
+            Systemrelasjoner definerer hvordan data flyter mellom systemer, integrasjonsmetoder og synkroniseringsfrekvenser.
+            
+            **Hovedfunksjoner:**
+            - Opprette og konfigurere nye systemrelasjoner
+            - Overvåke og administrere eksisterende integrasjoner
+            - Aktivere/deaktivere dataflyt mellom systemer
+            - Analysere relasjonsmønstre og systemarkitektur
+            
+            **Relasjonstyper:**
+            - Enveys dataflyt (Source → Target)
+            - Toveis datasynkronisering (Bidirectional)
+            - Event-baserte integrasjoner
+            - Batch-baserte dataoverføringer
+            
+            **Integrasjonsmetoder:**
+            - REST API-kall
+            - Message Queue systemer
+            - Databasesynkronisering
+            - Filbaserte integrasjoner
+            
+            **Sikkerhet og etterlevelse:**
+            - Kryptering av sensitive dataflyter
+            - Auditlogging av alle integrasjonsaktiviteter
+            - Tilgangskontroll basert på systemroller
+            - Overholdelse av GDPR og databeskyttelsesregler
+            </remarks>
         </member>
         <member name="M:SP.RBAC.API.Controllers.SystemRelationshipController.GetSystemRelationships(SP.RBAC.API.DTOs.SystemRelationshipSearchRequest)">
             <summary>
-            Gets all system relationships with optional filtering
+            Hent paginerte systemrelasjoner med filtrering og sortering
             </summary>
+            <remarks>
+            Returnerer en paginert liste over alle systemrelasjoner med mulighet for filtrering på:
+            - Relasjonstype (source-target, bidirectional, event-based)
+            - Aktivitetsstatus (active, inactive, pending)
+            - Kildesystem eller målsystem
+            - Integrasjonsmetode (REST, Message Queue, Database, File)
+            
+            **Bruksscenarioer:**
+            - Få oversikt over alle aktive integrasjoner
+            - Identifisere systemer med mange avhengigheter
+            - Planlegge systemoppgraderinger og vedlikehold
+            - Analysere dataflyt-mønstre og systemarkitektur
+            
+            **Sorteringsmuligheter:**
+            - Opprettelsesdato (nyeste/eldste først)
+            - Systemnavnene (alfabetisk)
+            - Aktivitetsstatus og ytelsesmetrikker
+            - Sist modifisert tidspunkt
+            
+            **Ytelsesoptimalisering:**
+            - Støtter lazy loading av relaterte entiteter
+            - Effektiv paginering for store datamengder
+            - Caching av hyppig brukte relasjonslister
+            </remarks>
+            <param name="request">Paginering og filtreringsparametere</param>
+            <returns>Paginert liste med systemrelasjoner</returns>
+            <response code="200">Vellykket uthenting av systemrelasjoner</response>
+            <response code="400">Ugyldig forespørsel eller parametere</response>
+            <response code="500">Intern serverfeil oppstod</response>
         </member>
         <member name="M:SP.RBAC.API.Controllers.SystemRelationshipController.GetSystemRelationship(System.Guid)">
             <summary>
-            Gets a specific system relationship by ID
+            Hent en spesifikk systemrelasjon med fullstendige detaljer
             </summary>
+            <remarks>
+            Returnerer detaljert informasjon om en enkelt systemrelasjon inkludert:
+            - Komplette kilde- og målsystemdetaljer
+            - Integrasjonskonfigurasjon og dataflyt-parametere
+            - Relaterte dokumenter og integrasjonshistorikk
+            - Status og ytelsesmetrikker
+            
+            **Bruksscenarioer:**
+            - Validere relasjonskonfigurasjon før endringer
+            - Analysere integrasjonsytelse og dataflyt
+            - Feilsøke integrasjonsproblemer
+            - Dokumentere systemarkitektur og avhengigheter
+            
+            **Inkluderte data:**
+            - Kildesystem: Navn, type, status og konfigurasjon
+            - Målsystem: Navn, type, status og konfigurasjon  
+            - Relasjon: Type, beskrivelse, dataflyt og frekvens
+            - Dokumenter: Teknisk dokumentasjon og integrasjonsguider
+            </remarks>
+            <param name="id">Unik identifikator for systemrelasjonen</param>
+            <returns>Detaljerte opplysninger om systemrelasjonen</returns>
+            <response code="200">Systemrelasjon funnet og returnert</response>
+            <response code="404">Systemrelasjon ikke funnet med angitt ID</response>
+            <response code="500">Intern serverfeil oppstod</response>
         </member>
         <member name="M:SP.RBAC.API.Controllers.SystemRelationshipController.CreateSystemRelationship(SP.RBAC.API.DTOs.CreateSystemRelationshipRequest)">
             <summary>
-            Creates a new system relationship
+            Opprett ny systemrelasjon med konfigurasjon og validering
             </summary>
+            <remarks>
+            Oppretter en ny systemrelasjon mellom to eksisterende integrasjonssystemer.
+            Operasjonen validerer kompatibilitet og konfigurerer automatisk grunnleggende integrasjonsparametere.
+            
+            **Valideringsprosess:**
+            1. Verifiserer at begge systemer eksisterer og er aktive
+            2. Sjekker for eksisterende relasjoner for å unngå duplikater
+            3. Validerer kompatibilitet mellom systemtyper og protokoller
+            4. Tester grunnleggende tilkobling og autentisering
+            
+            **Automatisk konfigurasjon:**
+            - Anbefalt integrasjonsmetode basert på systemtyper
+            - Standard dataflyt-retning og synkroniseringsfrekvens
+            - Sikkerhetskonfigurasjon og krypteringsinnstillinger
+            - Overvåking og logging-parametere
+            
+            **Tillatte relasjonstyper:**
+            - SOURCE_TO_TARGET: Enveys dataflyt fra kilde til mål
+            - BIDIRECTIONAL: Toveis datasynkronisering
+            - EVENT_DRIVEN: Event-basert integrasjon
+            - BATCH_TRANSFER: Planlagte batch-overføringer
+            
+            **Integrasjonsmetoder:**
+            - REST_API: HTTP-baserte API-kall
+            - MESSAGE_QUEUE: Asynkron meldingskø
+            - DATABASE_SYNC: Direktesynkronisering mellom databaser
+            - FILE_TRANSFER: Filbaserte dataoverføringer
+            
+            **Eksempel request:**
+            ```json
+            {
+              "sourceSystemId": "123e4567-e89b-12d3-a456-426614174000",
+              "targetSystemId": "987fcdeb-51a2-43d1-9f47-123456789abc",
+              "relationshipType": "SOURCE_TO_TARGET",
+              "description": "Synkronisering av brukerdata fra HR-system til Active Directory",
+              "dataFlow": "Unidirectional",
+              "integrationMethod": "REST_API",
+              "frequency": "Daily"
+            }
+            ```
+            </remarks>
+            <param name="request">Konfigurasjon for den nye systemrelasjonen</param>
+            <returns>Opprettet systemrelasjon med generert ID</returns>
+            <response code="201">Systemrelasjon opprettet vellykket</response>
+            <response code="400">Ugyldig forespørsel eller valideringsfeil</response>
+            <response code="409">Relasjon eksisterer allerede mellom systemene</response>
+            <response code="500">Intern serverfeil oppstod</response>
         </member>
         <member name="M:SP.RBAC.API.Controllers.SystemRelationshipController.UpdateSystemRelationship(System.Guid,SP.RBAC.API.DTOs.UpdateSystemRelationshipRequest)">
             <summary>
-            Updates an existing system relationship
+            Oppdater eksisterende systemrelasjon med ny konfigurasjon
             </summary>
+            <remarks>
+            Oppdaterer en eksisterende systemrelasjon med ny metadata, konfigurasjon eller strukturelle endringer.
+            Støtter delvis oppdateringer mens dataintegritet og referanserestriksjoner opprettholdes.
+            
+            **Oppdateringsmuligheter:**
+            - Endre relasjonsbeskrivelse og dokumentasjon
+            - Justere dataflyt-retning og integrasjonsmetode
+            - Modifisere synkroniseringsfrekvens og tidspunkter
+            - Oppdatere tekniske parametere og konfigurasjon
+            
+            **Begrensninger og validering:**
+            - Kan ikke endre kilde- eller målsystem etter opprettelse
+            - Relasjonstype kan ikke endres hvis aktive dataflyter eksisterer
+            - Endringer må være kompatible med eksisterende integrasjoner
+            - Oppgi grunn for endring for sporbarhet og revisjon
+            
+            **Påvirkningsanalyse:**
+            - Endring av integrasjonsmetode kan påvirke eksisterende synkroniseringsprosesser
+            - Modifisering av frekvens kan påvirke systemytelse og dataaktualitet
+            - Dataflyt-endringer kan kreve rekonfigurasjon av målsystemer
+            
+            **Eksempel request:**
+            ```json
+            {
+              "description": "Oppdatert: Inkluderer nå også avdelingsinformasjon",
+              "dataFlow": "Bidirectional",
+              "integrationMethod": "MESSAGE_QUEUE", 
+              "frequency": "Hourly"
+            }
+            ```
+            </remarks>
+            <param name="id">Unik identifikator for systemrelasjonen som skal oppdateres</param>
+            <param name="request">Oppdateringsinformasjon for systemrelasjonen</param>
+            <returns>Oppdatert systemrelasjon</returns>
+            <response code="200">Systemrelasjon oppdatert vellykket</response>
+            <response code="400">Ugyldig forespørsel eller valideringsfeil</response>
+            <response code="404">Systemrelasjon ikke funnet med angitt ID</response>
+            <response code="500">Intern serverfeil oppstod</response>
         </member>
         <member name="M:SP.RBAC.API.Controllers.SystemRelationshipController.DeactivateSystemRelationship(System.Guid)">
             <summary>
-            Deactivates a system relationship
+            Deaktiver systemrelasjon (myk sletting med avhengighetsvalidering)
             </summary>
+            <remarks>
+            Utfører myk deaktivering av en systemrelasjon etter validering av at ingen kritiske avhengigheter eksisterer.
+            Denne operasjonen markerer relasjonen som inaktiv uten å fysisk fjerne den fra databasen.
+            
+            **Deaktiveringsprosess:**
+            1. Validerer at ingen kritiske dataflyter er avhengige av relasjonen
+            2. Stopper aktive synkroniseringsprosesser gradvis
+            3. Markerer relasjon som inaktiv med timestamp og årsak
+            4. Opprettholder historiske data for etterlevelse og revisjon
+            
+            **Avhengighetsvalidering:**
+            - Sjekker for aktive datasynkroniseringsjobber
+            - Identifiserer kritiske integrasjonspunkter som kan påvirkes
+            - Vurderer nedstrøms systemer som er avhengige av dataflyt
+            
+            **Gjenopprettingsmuligheter:**
+            - Deaktiverte relasjoner kan reaktiveres via activate-endpoint
+            - All konfigurasjon og metadata bevares for rask gjenoppretting
+            - Integrasjonshistorikk opprettholdes for analyse og feilsøking
+            
+            **Alternative tiltak:**
+            - Vurder midlertidig pausing i stedet for full deaktivering
+            - Bruk planlagt vedlikehold for kritiske integrasjoner
+            - Kontakt systemadministrator for komplekse avhengighetsløsninger
+            
+            **Påvirkningsanalyse:**
+            - Stopper alle nye dataoverføringer mellom systemene
+            - Eksisterende data i målsystemer påvirkes ikke
+            - Rapporter og analyser kan trenge filteroppdateringer
+            </remarks>
+            <param name="id">Unik identifikator for systemrelasjonen som skal deaktiveres</param>
+            <returns>Ingen innhold ved vellykket deaktivering</returns>
+            <response code="204">Systemrelasjon deaktivert vellykket</response>
+            <response code="400">Kan ikke deaktivere relasjon med kritiske aktive avhengigheter</response>
+            <response code="404">Systemrelasjon ikke funnet med angitt ID</response>
+            <response code="500">Intern serverfeil oppstod</response>
         </member>
         <member name="M:SP.RBAC.API.Controllers.SystemRelationshipController.ActivateSystemRelationship(System.Guid)">
             <summary>
-            Reactivates a deactivated system relationship
+            Aktiverer eller reaktiverer systemrelasjon med validering
             </summary>
+            <remarks>
+            Aktiverer en deaktivert systemrelasjon eller reaktiverer en tidligere inaktiv integrasjon.
+            Operasjonen validerer systemtilgjengelighet og kompatibilitet før aktivering.
+            
+            **Aktiveringsprosess:**
+            1. Validerer tilgjengelighet av begge systemendepunkter
+            2. Tester autentisering og autorisasjon
+            3. Verifiserer dataskjema-kompatibilitet
+            4. Initialiserer overvåking og logging
+            5. Markerer relasjon som aktiv med starttidspunkt
+            
+            **Kompatibilitetssjekker:**
+            - API-versjonering og endepunktstabilitet
+            - Dataskjemavalidering mot målsystem
+            - Sikkerhetsprotokoller og sertifikater
+            - Kapasitets- og ytelsesbaseline
+            
+            **Forutsetninger for aktivering:**
+            - Begge systemer må være tilgjengelige og responsiv
+            - Gyldig autentisering må være konfigurert
+            - Nødvendige tillatelser må være på plass
+            - Systemmoduler må være kompatible med konfigurasjon
+            
+            **Overvåking og varsling:**
+            - Aktivering utløser automatisk helsesjekker
+            - Etablerer overvåkingsbaseline for ytelse
+            - Konfigurerer varsling for kritiske feil
+            
+            **Feilhåndtering:**
+            - Automatisk rollback ved valideringsfeil
+            - Detaljerte feilmeldinger for feilsøking
+            - Forslag til korrigerende tiltak ved kjente problemer
+            </remarks>
+            <param name="id">Unik identifikator for systemrelasjonen som skal aktiveres</param>
+            <returns>Ingen innhold ved vellykket aktivering</returns>
+            <response code="204">Systemrelasjon aktivert vellykket</response>
+            <response code="400">Valideringsfeil - system ikke klar for aktivering</response>
+            <response code="404">Systemrelasjon ikke funnet med angitt ID</response>
+            <response code="500">Intern serverfeil oppstod</response>
         </member>
         <member name="M:SP.RBAC.API.Controllers.SystemRelationshipController.GetRelationshipsBySystem(System.Guid)">
             <summary>
-            Gets all relationships for a specific system (both source and target)
+            Hent alle relasjoner for et spesifikt system (både kilde og mål)
             </summary>
+            <remarks>
+            Returnerer en komplett oversikt over alle systemrelasjoner hvor det angitte systemet fungerer enten som kilde eller mål.
+            Inkluderer både aktive og inaktive relasjoner med full kontekstuell informasjon.
+            
+            **Bruksscenarioer:**
+            - Kartlegge systemavhengigheter før oppgraderinger
+            - Analysere påvirkningsområde for systemendringer
+            - Dokumentere systemarkitektur og dataflyt
+            - Planlegge vedlikehold og nedetid
+            
+            **Inkluderte relasjonstyper:**
+            - Utgående relasjoner (system som kilde)
+            - Innkommende relasjoner (system som mål)
+            - Bidireksjonelle integrasjoner
+            - Event-baserte tilkoblinger
+            
+            **Datagruppering:**
+            - Relasjoner gruppert etter retning (inn/ut)
+            - Status-kategorisering (aktiv/inaktiv/vedlikehold)
+            - Integrasjonsmetode-klassifisering
+            - Kritikalitetsnivå basert på datavolum og frekvens
+            
+            **Systemanalyse:**
+            - Identifiserer systemets rolle i integrasjonsarkitekturen
+            - Beregner avhengighetsgrad og kritikalitet
+            - Rapporterer integrasjonskapasitet og belastning
+            </remarks>
+            <param name="systemId">Unik identifikator for systemet</param>
+            <returns>Komplette relasjonsdata for systemet</returns>
+            <response code="200">Systemrelasjoner hentet vellykket</response>
+            <response code="404">System ikke funnet med angitt ID</response>
+            <response code="500">Intern serverfeil oppstod</response>
         </member>
         <member name="M:SP.RBAC.API.Controllers.SystemRelationshipController.GetIntegrationArchitecture">
             <summary>
-            Gets system architecture overview showing all relationships
+            Generer integrasjonsarkitektur-oversikt for rapportering
             </summary>
+            <remarks>
+            Produserer en omfattende rapport over systemintegrasjonsarkitekturen inkludert:
+            - Nettverkstopologi og systemsammenkobling
+            - Kritiske dataflyt-stier og avhengighetskart
+            - Kapasitetsanalyse og ytelsesmetrikker
+            - Sikkerhetsvurdering og risikoanalyse
+            
+            **Arkitekturanalyse:**
+            - Identifiserer sentrale knutepunktsystemer (high-degree nodes)
+            - Kartlegger kritiske enkeltpunktsfeil (single points of failure)
+            - Analyserer dataflyt-mønstre og integrasjonsvolum
+            - Vurderer systemmodenhet og teknisk gjeld
+            
+            **Rapporterings-elementer:**
+            - Grafisk fremstilling av systemtopologi
+            - Tabeller med relasjonsdetaljer og konfigurasjoner
+            - Trendanalyse og kapasitetsplanlegging
+            - Anbefalinger for arkitekturoptimalisering
+            
+            **Bruksområder:**
+            - Årlig arkitekturgjennomgang og dokumentasjon
+            - Compliance-rapportering til ledelse og revisorer
+            - Planlegging av systemutskiftinger og oppgraderinger
+            - Risikovurdering og kontinuitetsplanlegging
+            
+            **Tekniske detaljer:**
+            - Inkluderer versjonsinformasjon og API-kompatibilitet
+            - Rapporterer integrasjonshelse og oppetidsstatistikk
+            - Dokumenterer datavolum og ytelsesbaseline
+            - Identifiserer potensielle optimaliseringsmuligheter
+            </remarks>
+            <returns>Omfattende integrasjonsarkitektur-rapport</returns>
+            <response code="200">Arkitekturrapport generert vellykket</response>
+            <response code="500">Intern serverfeil under rapportgenerering</response>
         </member>
         <member name="M:SP.RBAC.API.Controllers.SystemRelationshipController.GetRelationshipStatistics">
             <summary>
-            Gets relationship statistics by type
+            Generer statistikk og metrikker for systemrelasjoner
             </summary>
+            <remarks>
+            Beregner og returnerer omfattende statistikk og nøkkelmetrikker for systemintegrasjoner:
+            - Aktivitets- og tilgjengelighetstall
+            - Integrasjonsmetode-fordeling og bruksmønstre
+            - Systembelastning og kapasitetsutnyttelse
+            - Trends og ytelsesutvikling over tid
+            
+            **Statistiske kategorier:**
+            - Kvantitative mål: Antall aktive/inaktive relasjoner, gjennomsnittlig oppetid
+            - Kvalitative indikatorer: Integrasjonshelse, feilfrekvens, responsivitets
+            - Trendanalyse: Vekstrate, sesonaliteter, mønstre i datatrafikk
+            - Sammenligningsdata: Benchmark mot beste praksis og industristandarder
+            
+            **Nøkkeltall for ledelse:**
+            - Systemintegrasjonsmodnhet og digitalisering-score
+            - Kostnad per integrasjon og ROI-beregninger
+            - Risikovurdering og compliance-overholdelse
+            - Kapasitetsplanlegging og tekniske investeringsbehov
+            
+            **Operasjonelle metrikker:**
+            - Systemrespons og ytelseskarakteristika
+            - Feiltoleranse og gjenopprettingshastighet
+            - Datavolum og gjennomstrømming per integrasjon
+            - Vedlikeholdskostnader og operasjonell effektivitet
+            
+            **Automatisering og varsling:**
+            - Terskelverdier for kritiske nøkkeltall
+            - Proaktiv varsling ved avvik fra baseline
+            - Prediktiv analyse av systemkapasitetsbehov
+            - Automatisk rapportering til interessenter
+            </remarks>
+            <returns>Omfattende statistikk og metrikker for systemintegrasjoner</returns>
+            <response code="200">Statistikk generert vellykket</response>
+            <response code="500">Intern serverfeil under statistikkberegning</response>
         </member>
         <member name="T:SP.RBAC.API.DTOs.AuditLogDto">
             <summary>

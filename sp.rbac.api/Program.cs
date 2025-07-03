@@ -32,60 +32,60 @@ try
     {
         c.SwaggerDoc("v1", new OpenApiInfo 
         { 
-            Title = "SP.RBAC.API - Role-Based Access Control Platform",
+            Title = "SP.RBAC.API - Rollebasert tilgangskontroll plattform",
             Version = "v1.0.0",
             Description = @"
-## Overview
+## Oversikt
 
-A comprehensive .NET 9 Web API for managing role-based access control (RBAC) with support for:
+En omfattende .NET 9 Web API for administrasjon av rollebasert tilgangskontroll (RBAC) med støtte for:
 
-- **Integration Systems**: External system connections (HR, EMR, CRM, Active Directory)
-- **Entity Management**: Dynamic entity definitions and instances with flexible property systems
-- **Access Control**: Advanced rules, assignments, and automated workflows
-- **Audit & Compliance**: Complete audit trails and compliance reporting
-- **Test Data**: Configurable test data seeding for development and testing
+- **Integrasjonssystemer**: Eksterne systemtilkoblinger (HR, EMR, CRM, Active Directory)
+- **Entitetshåndtering**: Dynamiske entitetsdefinisjoner og instanser med fleksible egenskapssystemer
+- **Tilgangskontroll**: Avanserte regler, tildelinger og automatiserte arbeidsflyter
+- **Revisjon og compliance**: Komplette revisjonsspor og compliance-rapportering
+- **Testdata**: Konfigurerbar testdata-seeding for utvikling og testing
 
-## Authentication
+## Autentisering
 
-Currently configured for development without authentication. In production environments, 
-implement JWT Bearer token authentication or OAuth2/OpenID Connect.
+For øyeblikket konfigurert for utvikling uten autentisering. I produksjonsmiljøer skal 
+JWT Bearer token-autentisering eller OAuth2/OpenID Connect implementeres.
 
-## Rate Limiting
+## Ratebegrensning
 
-No rate limiting is currently implemented. Consider implementing rate limiting for production use.
+Ingen ratebegrensning er implementert for øyeblikket. Vurder å implementere ratebegrensning for produksjonsbruk.
 
-## Error Handling
+## Feilhåndtering
 
-All endpoints return standardized error responses with appropriate HTTP status codes:
-- **400**: Bad Request (validation errors)
-- **404**: Not Found
-- **500**: Internal Server Error
+Alle endepunkter returnerer standardiserte feilsvar med passende HTTP-statuskoder:
+- **400**: Ugyldig forespørsel (valideringsfeil)
+- **404**: Ikke funnet
+- **500**: Intern serverfeil
 
-## Pagination
+## Paginering
 
-List endpoints support pagination with these standard parameters:
-- `pageNumber`: Page number (default: 1, minimum: 1)
-- `pageSize`: Items per page (default: 10, maximum: 100)
+Liste-endepunkter støtter paginering med disse standardparameterne:
+- `pageNumber`: Sidenummer (standard: 1, minimum: 1)
+- `pageSize`: Elementer per side (standard: 10, maksimum: 100)
 
-## Getting Started
+## Kom i gang
 
-1. All endpoints are available immediately with pre-seeded test data
-2. Use the Swagger UI 'Try it out' feature to test endpoints
-3. Check the `/health` endpoint to verify system status
-4. Explore integration systems first, then entity definitions and instances
+1. Alle endepunkter er tilgjengelige umiddelbart med forhåndsinnlastet testdata
+2. Bruk Swagger UI 'Try it out'-funksjonen for å teste endepunkter
+3. Sjekk `/health`-endepunktet for å verifisere systemstatus
+4. Utforsk integrasjonssystemer først, deretter entitetsdefinisjoner og instanser
 
 ## Support
 
-For API support and documentation updates, contact the development team.
+For API-støtte og dokumentasjonsoppdateringer, kontakt utviklingsteamet.
 ",
             Contact = new OpenApiContact
             {
-                Name = "SP.RBAC.API Development Team",
+                Name = "SP.RBAC.API Utviklingsteam",
                 Email = "dev-team@company.com"
             },
             License = new OpenApiLicense
             {
-                Name = "MIT License",
+                Name = "MIT Lisens",
                 Url = new Uri("https://opensource.org/licenses/MIT")
             }
         });

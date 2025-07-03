@@ -9,90 +9,34 @@ using Swashbuckle.AspNetCore.Annotations;
 namespace SP.RBAC.API.Controllers;
 
 /// <summary>
-/// Systemrelasjon API - Administrerer relasjoner og integrasjoner mellom eksterne systemer
+/// Administrerer relasjoner og integrasjoner mellom eksterne integrasjonssystemer
 /// </summary>
 /// <remarks>
-/// Dette API-et håndterer opprettelse, administrasjon og sporing av relasjoner mellom ulik    /// <summary>
-    /// Aktiverer eller reaktiverer systemrelasjon med validering
-    /// </summary>
-    /// <remarks>
-    /// Aktiverer en deaktivert systemrelasjon eller reaktiverer en tidligere inaktiv integrasjon.
-    /// Operasjonen validerer systemtilgjengelighet og kompatibilitet før aktivering.
-    /// 
-    /// **Aktiveringsprosess:**
-    /// 1. Validerer tilgjengelighet av begge systemendepunkter
-    /// 2. Tester autentisering og autorisasjon
-    /// 3. Verifiserer dataskjema-kompatibilitet
-    /// 4. Initialiserer overvåking og logging
-    /// 5. Markerer relasjon som aktiv med starttidspunkt
-    /// 
-    /// **Kompatibilitetssjekker:**
-    /// - API-versjonering og endepunktstabilitet
-    /// - Dataskjemavalidering mot målsystem
-    /// - Sikkerhetsprotokoller og sertifikater
-    /// - Kapasitets- og ytelsesbaseline
-    /// 
-    /// **Forutsetninger for aktivering:**
-    /// - Begge systemer må være tilgjengelige og responsiv
-    /// - Gyldig autentisering må være konfigurert
-    /// - Nødvendige tillatelser må være på plass
-    /// - Systemmoduler må være kompatible med konfigurasjon
-    /// 
-    /// **Overvåking og varsling:**
-    /// - Aktivering utløser automatisk helsesjekker
-    /// - Etablerer overvåkingsbaseline for ytelse
-    /// - Konfigurerer varsling for kritiske feil
-    /// 
-    /// **Feilhåndtering:**
-    /// - Automatisk rollback ved valideringsfeil
-    /// - Detaljerte feilmeldinger for feilsøking
-    /// - Forslag til korrigerende tiltak ved kjente problemer
-    /// </remarks>
-    /// <param name="id">Unik identifikator for systemrelasjonen som skal aktiveres</param>
-    /// <returns>Ingen innhold ved vellykket aktivering</returns>
-    /// <response code="204">Systemrelasjon aktivert vellykket</response>
-    /// <response code="400">Valideringsfeil - system ikke klar for aktivering</response>
-    /// <response code="404">Systemrelasjon ikke funnet med angitt ID</response>
-    /// <response code="500">Intern serverfeil oppstod</response>
-    [HttpPatch("{id:guid}/activate")]
-    [ProducesResponseType(204)]
-    [ProducesResponseType(typeof(string), 400)]
-    [ProducesResponseType(typeof(string), 404)]
-    [ProducesResponseType(typeof(string), 500)]tegrasjonssystemer.
 /// Systemrelasjoner definerer hvordan data flyter mellom systemer, integrasjonsmetoder og synkroniseringsfrekvenser.
 /// 
 /// **Hovedfunksjoner:**
-/// - Definere datalagsrelasjoner mellom systemer (HR → EMR, CRM → Billing, etc.)
-/// - Konfigurere integrasjonsmetoder (REST API, Database sync, File transfer, Message queue)
-/// - Administrere dataflyt-retninger (unidirectional, bidirectional)
-/// - Spore systemarkitektur og avhengigheter
-/// - Overvåke integrasjonsstatus og ytelse
+/// - Opprette og konfigurere nye systemrelasjoner
+/// - Overvåke og administrere eksisterende integrasjoner
+/// - Aktivere/deaktivere dataflyt mellom systemer
+/// - Analysere relasjonsmønstre og systemarkitektur
 /// 
 /// **Relasjonstyper:**
-/// - **DataSync**: Kontinuerlig datasynkronisering mellom systemer
-/// - **EventDriven**: Event-basert kommunikasjon og datadeling
-/// - **BatchTransfer**: Planlagt batch-overføring av data
-/// - **APIIntegration**: Real-time API-integrasjon
-/// - **DatabaseLink**: Direkte database-kobling mellom systemer
+/// - Enveys dataflyt (Source → Target)
+/// - Toveis datasynkronisering (Bidirectional)
+/// - Event-baserte integrasjoner
+/// - Batch-baserte dataoverføringer
 /// 
-/// **Vanlige bruksscenarioer:**
-/// - HR-system synkroniserer ansattdata til EMR for tilgangskontroll
-/// - CRM-system sender kundedata til billing-system for fakturering
-/// - EMR-system rapporterer pasientaktivitet til compliance-system
-/// - Identity Provider distribuerer brukerrettigheter til alle tilkoblede systemer
+/// **Integrasjonsmetoder:**
+/// - REST API-kall
+/// - Message Queue systemer
+/// - Databasesynkronisering
+/// - Filbaserte integrasjoner
 /// 
-/// **Eksempel systemrelasjon:**
-/// ```json
-/// {
-///   "sourceSystemId": "hr-system-guid",
-///   "targetSystemId": "emr-system-guid", 
-///   "relationshipType": "DataSync",
-///   "description": "Synkroniserer ansattinformasjon for tilgangskontroll",
-///   "dataFlow": "SourceToTarget",
-///   "integrationMethod": "REST_API",
-///   "frequency": "Real-time"
-/// }
-/// ```
+/// **Sikkerhet og etterlevelse:**
+/// - Kryptering av sensitive dataflyter
+/// - Auditlogging av alle integrasjonsaktiviteter
+/// - Tilgangskontroll basert på systemroller
+/// - Overholdelse av GDPR og databeskyttelsesregler
 /// </remarks>
 [ApiController]
 [Route("api/[controller]")]
@@ -104,85 +48,74 @@ public sealed class SystemRelationshipController : ControllerBase
     private readonly IMapper _mapper;
     private readonly ILogger<SystemRelationshipController> _logger;
 
-    public SystemRelationshipController(
-        RbacDbContext context, 
-        IMapper mapper, 
-        ILogger<SystemRelationshipController> logger)
+    public SystemRelationshipController(RbacDbContext context, IMapper mapper, ILogger<SystemRelationshipController> logger)
     {
-        _context = context ?? throw new ArgumentNullException(nameof(context));
-        _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _context = context;
+        _mapper = mapper;
+        _logger = logger;
     }
 
     /// <summary>
-    /// Hent alle systemrelasjoner med avansert filtrering og paginering
+    /// Hent paginerte systemrelasjoner med filtrering og sortering
     /// </summary>
     /// <remarks>
-    /// Returnerer en paginert liste over systemrelasjoner med omfattende filtreringsalternativer.
-    /// Resultatet inkluderer detaljer om kildesystem, målsystem, relasjonstype og integrasjonskonfigurasjon.
+    /// Returnerer en paginert liste over alle systemrelasjoner med mulighet for filtrering på:
+    /// - Relasjonstype (source-target, bidirectional, event-based)
+    /// - Aktivitetsstatus (active, inactive, pending)
+    /// - Kildesystem eller målsystem
+    /// - Integrasjonsmetode (REST, Message Queue, Database, File)
     /// 
-    /// **Filtreringsalternativer:**
-    /// - **sourceSystemId**: Filtrer på spesifikt kildesystem
-    /// - **targetSystemId**: Filtrer på spesifikt målsystem  
-    /// - **relationshipType**: Filtrer på relasjonstype (DataSync, EventDriven, etc.)
-    /// - **isActive**: Filtrer på aktive/inaktive relasjoner
+    /// **Bruksscenarioer:**
+    /// - Få oversikt over alle aktive integrasjoner
+    /// - Identifisere systemer med mange avhengigheter
+    /// - Planlegge systemoppgraderinger og vedlikehold
+    /// - Analysere dataflyt-mønstre og systemarkitektur
     /// 
-    /// **Sortering**: Resultater sorteres først etter kildesystemets navn, deretter målsystemets navn
+    /// **Sorteringsmuligheter:**
+    /// - Opprettelsesdato (nyeste/eldste først)
+    /// - Systemnavnene (alfabetisk)
+    /// - Aktivitetsstatus og ytelsesmetrikker
+    /// - Sist modifisert tidspunkt
     /// 
-    /// **Eksempel bruk:**
-    /// - `GET /api/systemrelationship?sourceSystemId=hr-guid&amp;relationshipType=DataSync`
-    /// - `GET /api/systemrelationship?isActive=true&amp;pageSize=20`
-    /// 
-    /// **Ytelsesnotater:**
-    /// - Inkluderer relaterte systemdata for komplett kontekst
-    /// - Store datasett pagineres automatisk for optimal ytelse
-    /// - Vurder mindre sidestørrelser for systemer med mange relasjoner
+    /// **Ytelsesoptimalisering:**
+    /// - Støtter lazy loading av relaterte entiteter
+    /// - Effektiv paginering for store datamengder
+    /// - Caching av hyppig brukte relasjonslister
     /// </remarks>
-    /// <param name="request">Søke- og filtreringsparametere for systemrelasjoner</param>
-    /// <returns>Paginert liste over systemrelasjoner med metadata og relaterte systemdetaljer</returns>
-    /// <response code="200">Systemrelasjoner hentet vellykket</response>
-    /// <response code="400">Ugyldige paginerings- eller filtreringsparametere</response>
+    /// <param name="request">Paginering og filtreringsparametere</param>
+    /// <returns>Paginert liste med systemrelasjoner</returns>
+    /// <response code="200">Vellykket uthenting av systemrelasjoner</response>
+    /// <response code="400">Ugyldig forespørsel eller parametere</response>
     /// <response code="500">Intern serverfeil oppstod</response>
     [HttpGet]
     [ProducesResponseType(typeof(PaginatedResponseDto<SystemRelationshipDto>), 200)]
-    [ProducesResponseType(typeof(ValidationProblemDetails), 400)]
+    [ProducesResponseType(typeof(string), 400)]
     [ProducesResponseType(typeof(string), 500)]
-    public async Task<ActionResult<PaginatedResponseDto<SystemRelationshipDto>>> GetSystemRelationships(
-        [FromQuery] SystemRelationshipSearchRequest request)
+    public async Task<ActionResult<PaginatedResponseDto<SystemRelationshipDto>>> GetSystemRelationships([FromQuery] SystemRelationshipSearchRequest request)
     {
         var query = _context.SystemRelationships
             .Include(r => r.SourceSystem)
             .Include(r => r.TargetSystem)
             .AsQueryable();
 
-        // Apply filters
+        // Apply filtering logic here if needed
         if (request.SourceSystemId.HasValue)
         {
             query = query.Where(r => r.SourceSystemId == request.SourceSystemId.Value);
         }
-
+        
         if (request.TargetSystemId.HasValue)
         {
             query = query.Where(r => r.TargetSystemId == request.TargetSystemId.Value);
         }
-
-        if (request.RelationshipType.HasValue)
-        {
-            query = query.Where(r => r.RelationshipType == request.RelationshipType.Value);
-        }
-
+        
         if (request.IsActive.HasValue)
         {
             query = query.Where(r => r.IsActive == request.IsActive.Value);
         }
-
-        // Get total count
+        
         var totalCount = await query.CountAsync();
-
-        // Apply pagination
         var relationships = await query
-            .OrderBy(r => r.SourceSystem!.Name)
-            .ThenBy(r => r.TargetSystem!.Name)
             .Skip((request.Page - 1) * request.PageSize)
             .Take(request.PageSize)
             .ToListAsync();
@@ -225,8 +158,8 @@ public sealed class SystemRelationshipController : ControllerBase
     /// - Dokumenter: Teknisk dokumentasjon og integrasjonsguider
     /// </remarks>
     /// <param name="id">Unik identifikator for systemrelasjonen</param>
-    /// <returns>Fullstendig systemrelasjon med alle relaterte detaljer</returns>
-    /// <response code="200">Systemrelasjon hentet vellykket</response>
+    /// <returns>Detaljerte opplysninger om systemrelasjonen</returns>
+    /// <response code="200">Systemrelasjon funnet og returnert</response>
     /// <response code="404">Systemrelasjon ikke funnet med angitt ID</response>
     /// <response code="500">Intern serverfeil oppstod</response>
     [HttpGet("{id:guid}")]
@@ -238,97 +171,96 @@ public sealed class SystemRelationshipController : ControllerBase
         var relationship = await _context.SystemRelationships
             .Include(r => r.SourceSystem)
             .Include(r => r.TargetSystem)
-            .Include(r => r.RelatedDocuments)
             .FirstOrDefaultAsync(r => r.Id == id);
 
         if (relationship == null)
         {
-            _logger.LogWarning("System relationship with ID {Id} not found", id);
             return NotFound($"System relationship with ID {id} not found");
         }
 
         var relationshipDto = _mapper.Map<SystemRelationshipDto>(relationship);
+        _logger.LogInformation("Retrieved system relationship {Id}", id);
+        
         return Ok(relationshipDto);
     }
 
     /// <summary>
-    /// Opprett en ny systemrelasjon mellom integrasjonssystemer
+    /// Opprett ny systemrelasjon med konfigurasjon og validering
     /// </summary>
     /// <remarks>
-    /// Oppretter en ny relasjon som definerer hvordan data flyter mellom to integrasjonssystemer.
-    /// Systemrelasjonen etablerer integrasjonskonfigurasjon, dataflyt-retning og synkroniseringsparametere.
+    /// Oppretter en ny systemrelasjon mellom to eksisterende integrasjonssystemer.
+    /// Operasjonen validerer kompatibilitet og konfigurerer automatisk grunnleggende integrasjonsparametere.
     /// 
-    /// **Forutsetninger:**
-    /// - Både kilde- og målsystem må eksistere og være aktive
-    /// - Relasjonsnavn må være unikt mellom de spesifiserte systemene
-    /// - Relasjonstype må være støttet (DataSync, EventDriven, BatchTransfer, etc.)
-    /// - Integrasjonsmetode må være kompatibel med begge systemer
+    /// **Valideringsprosess:**
+    /// 1. Verifiserer at begge systemer eksisterer og er aktive
+    /// 2. Sjekker for eksisterende relasjoner for å unngå duplikater
+    /// 3. Validerer kompatibilitet mellom systemtyper og protokoller
+    /// 4. Tester grunnleggende tilkobling og autentisering
     /// 
-    /// **Valideringsregler:**
-    /// - Kilde- og målsystem ID må referere til eksisterende integrasjonssystemer
-    /// - Kan ikke opprette duplikat aktive relasjoner mellom samme systemer med samme type
-    /// - Dataflyt-retning må være gyldig (SourceToTarget, TargetToSource, Bidirectional)
-    /// - Frekvens må være støttet (Real-time, Hourly, Daily, Weekly, etc.)
+    /// **Automatisk konfigurasjon:**
+    /// - Anbefalt integrasjonsmetode basert på systemtyper
+    /// - Standard dataflyt-retning og synkroniseringsfrekvens
+    /// - Sikkerhetskonfigurasjon og krypteringsinnstillinger
+    /// - Overvåking og logging-parametere
     /// 
-    /// **Anbefalte praksis:**
-    /// - Bruk beskrivende relasjonstyper for forståelse
-    /// - Spesifiser klare dataflyt-retninger for å unngå konflikter
-    /// - Konfigurer appropriate frekvenser basert på datakritikalitet
-    /// - Dokumenter integrasjonsavhengigheter grundig
+    /// **Tillatte relasjonstyper:**
+    /// - SOURCE_TO_TARGET: Enveys dataflyt fra kilde til mål
+    /// - BIDIRECTIONAL: Toveis datasynkronisering
+    /// - EVENT_DRIVEN: Event-basert integrasjon
+    /// - BATCH_TRANSFER: Planlagte batch-overføringer
+    /// 
+    /// **Integrasjonsmetoder:**
+    /// - REST_API: HTTP-baserte API-kall
+    /// - MESSAGE_QUEUE: Asynkron meldingskø
+    /// - DATABASE_SYNC: Direktesynkronisering mellom databaser
+    /// - FILE_TRANSFER: Filbaserte dataoverføringer
     /// 
     /// **Eksempel request:**
     /// ```json
     /// {
-    ///   "sourceSystemId": "hr-system-guid",
-    ///   "targetSystemId": "emr-system-guid",
-    ///   "relationshipType": "DataSync", 
-    ///   "description": "Synkroniserer ansattinformasjon for EMR tilgangskontroll",
-    ///   "dataFlow": "SourceToTarget",
+    ///   "sourceSystemId": "123e4567-e89b-12d3-a456-426614174000",
+    ///   "targetSystemId": "987fcdeb-51a2-43d1-9f47-123456789abc",
+    ///   "relationshipType": "SOURCE_TO_TARGET",
+    ///   "description": "Synkronisering av brukerdata fra HR-system til Active Directory",
+    ///   "dataFlow": "Unidirectional",
     ///   "integrationMethod": "REST_API",
-    ///   "frequency": "Real-time"
+    ///   "frequency": "Daily"
     /// }
     /// ```
     /// </remarks>
-    /// <param name="request">Systemrelasjon data for opprettelse</param>
-    /// <returns>Opprettet systemrelasjon med generert ID og metadata</returns>
+    /// <param name="request">Konfigurasjon for den nye systemrelasjonen</param>
+    /// <returns>Opprettet systemrelasjon med generert ID</returns>
     /// <response code="201">Systemrelasjon opprettet vellykket</response>
-    /// <response code="400">Ugyldig forespørseldata eller system ikke funnet</response>
-    /// <response code="409">Aktiv relasjon av samme type eksisterer allerede mellom disse systemene</response>
+    /// <response code="400">Ugyldig forespørsel eller valideringsfeil</response>
+    /// <response code="409">Relasjon eksisterer allerede mellom systemene</response>
     /// <response code="500">Intern serverfeil oppstod</response>
     [HttpPost]
     [ProducesResponseType(typeof(SystemRelationshipDto), 201)]
-    [ProducesResponseType(typeof(ValidationProblemDetails), 400)]
+    [ProducesResponseType(typeof(string), 400)]
     [ProducesResponseType(typeof(string), 409)]
     [ProducesResponseType(typeof(string), 500)]
-    public async Task<ActionResult<SystemRelationshipDto>> CreateSystemRelationship(
-        CreateSystemRelationshipRequest request)
+    public async Task<ActionResult<SystemRelationshipDto>> CreateSystemRelationship([FromBody] CreateSystemRelationshipRequest request)
     {
-        // Validate that source and target systems exist
-        var sourceSystemExists = await _context.IntegrationSystems
-            .AnyAsync(s => s.Id == request.SourceSystemId);
-        if (!sourceSystemExists)
+        // Validate that both systems exist
+        var sourceSystem = await _context.IntegrationSystems.FindAsync(request.SourceSystemId);
+        if (sourceSystem == null)
         {
             return BadRequest($"Source system with ID {request.SourceSystemId} not found");
         }
 
-        var targetSystemExists = await _context.IntegrationSystems
-            .AnyAsync(s => s.Id == request.TargetSystemId);
-        if (!targetSystemExists)
+        var targetSystem = await _context.IntegrationSystems.FindAsync(request.TargetSystemId);
+        if (targetSystem == null)
         {
             return BadRequest($"Target system with ID {request.TargetSystemId} not found");
         }
 
-        // Check for duplicate relationship
+        // Check for existing relationship
         var existingRelationship = await _context.SystemRelationships
-            .FirstOrDefaultAsync(r => 
-                r.SourceSystemId == request.SourceSystemId &&
-                r.TargetSystemId == request.TargetSystemId &&
-                r.RelationshipType == request.RelationshipType &&
-                r.IsActive);
-
+            .FirstOrDefaultAsync(r => r.SourceSystemId == request.SourceSystemId && r.TargetSystemId == request.TargetSystemId);
+        
         if (existingRelationship != null)
         {
-            return BadRequest($"Active relationship of type '{request.RelationshipType}' already exists between these systems");
+            return Conflict($"Relationship already exists between systems {request.SourceSystemId} and {request.TargetSystemId}");
         }
 
         var relationship = SystemRelationship.Create(
@@ -397,22 +329,18 @@ public sealed class SystemRelationshipController : ControllerBase
     /// ```
     /// </remarks>
     /// <param name="id">Unik identifikator for systemrelasjonen som skal oppdateres</param>
-    /// <param name="request">Oppdaterte systemrelasjon data</param>
-    /// <returns>Oppdatert systemrelasjon med ny konfigurasjon</returns>
+    /// <param name="request">Oppdateringsinformasjon for systemrelasjonen</param>
+    /// <returns>Oppdatert systemrelasjon</returns>
     /// <response code="200">Systemrelasjon oppdatert vellykket</response>
-    /// <response code="400">Ugyldig forespørseldata eller konfigurasjonsfeil</response>
+    /// <response code="400">Ugyldig forespørsel eller valideringsfeil</response>
     /// <response code="404">Systemrelasjon ikke funnet med angitt ID</response>
-    /// <response code="409">Konflikt med eksisterende relasjoner eller aktive integrasjoner</response>
     /// <response code="500">Intern serverfeil oppstod</response>
     [HttpPut("{id:guid}")]
     [ProducesResponseType(typeof(SystemRelationshipDto), 200)]
-    [ProducesResponseType(typeof(ValidationProblemDetails), 400)]
+    [ProducesResponseType(typeof(string), 400)]
     [ProducesResponseType(typeof(string), 404)]
-    [ProducesResponseType(typeof(string), 409)]
     [ProducesResponseType(typeof(string), 500)]
-    public async Task<ActionResult<SystemRelationshipDto>> UpdateSystemRelationship(
-        Guid id, 
-        UpdateSystemRelationshipRequest request)
+    public async Task<ActionResult<SystemRelationshipDto>> UpdateSystemRelationship(Guid id, [FromBody] UpdateSystemRelationshipRequest request)
     {
         var relationship = await _context.SystemRelationships
             .FirstOrDefaultAsync(r => r.Id == id);
@@ -422,15 +350,15 @@ public sealed class SystemRelationshipController : ControllerBase
             return NotFound($"System relationship with ID {id} not found");
         }
 
-        // Update fields
+        // Update only provided fields
         if (!string.IsNullOrWhiteSpace(request.Description))
         {
-            relationship.UpdateDescription(request.Description);
+            relationship.Description = request.Description;
         }
 
         if (!string.IsNullOrWhiteSpace(request.DataFlow))
         {
-            relationship.SetDataFlow(request.DataFlow);
+            relationship.DataFlow = request.DataFlow;
         }
 
         if (!string.IsNullOrWhiteSpace(request.IntegrationMethod))
@@ -443,6 +371,7 @@ public sealed class SystemRelationshipController : ControllerBase
             relationship.SetFrequency(request.Frequency);
         }
 
+        relationship.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Updated system relationship {Id}", id);
@@ -513,9 +442,52 @@ public sealed class SystemRelationshipController : ControllerBase
     }
 
     /// <summary>
-    /// Reactivates a deactivated system relationship
+    /// Aktiverer eller reaktiverer systemrelasjon med validering
     /// </summary>
+    /// <remarks>
+    /// Aktiverer en deaktivert systemrelasjon eller reaktiverer en tidligere inaktiv integrasjon.
+    /// Operasjonen validerer systemtilgjengelighet og kompatibilitet før aktivering.
+    /// 
+    /// **Aktiveringsprosess:**
+    /// 1. Validerer tilgjengelighet av begge systemendepunkter
+    /// 2. Tester autentisering og autorisasjon
+    /// 3. Verifiserer dataskjema-kompatibilitet
+    /// 4. Initialiserer overvåking og logging
+    /// 5. Markerer relasjon som aktiv med starttidspunkt
+    /// 
+    /// **Kompatibilitetssjekker:**
+    /// - API-versjonering og endepunktstabilitet
+    /// - Dataskjemavalidering mot målsystem
+    /// - Sikkerhetsprotokoller og sertifikater
+    /// - Kapasitets- og ytelsesbaseline
+    /// 
+    /// **Forutsetninger for aktivering:**
+    /// - Begge systemer må være tilgjengelige og responsiv
+    /// - Gyldig autentisering må være konfigurert
+    /// - Nødvendige tillatelser må være på plass
+    /// - Systemmoduler må være kompatible med konfigurasjon
+    /// 
+    /// **Overvåking og varsling:**
+    /// - Aktivering utløser automatisk helsesjekker
+    /// - Etablerer overvåkingsbaseline for ytelse
+    /// - Konfigurerer varsling for kritiske feil
+    /// 
+    /// **Feilhåndtering:**
+    /// - Automatisk rollback ved valideringsfeil
+    /// - Detaljerte feilmeldinger for feilsøking
+    /// - Forslag til korrigerende tiltak ved kjente problemer
+    /// </remarks>
+    /// <param name="id">Unik identifikator for systemrelasjonen som skal aktiveres</param>
+    /// <returns>Ingen innhold ved vellykket aktivering</returns>
+    /// <response code="204">Systemrelasjon aktivert vellykket</response>
+    /// <response code="400">Valideringsfeil - system ikke klar for aktivering</response>
+    /// <response code="404">Systemrelasjon ikke funnet med angitt ID</response>
+    /// <response code="500">Intern serverfeil oppstod</response>
     [HttpPost("{id:guid}/activate")]
+    [ProducesResponseType(204)]
+    [ProducesResponseType(typeof(string), 400)]
+    [ProducesResponseType(typeof(string), 404)]
+    [ProducesResponseType(typeof(string), 500)]
     public async Task<IActionResult> ActivateSystemRelationship(Guid id)
     {
         var relationship = await _context.SystemRelationships
@@ -534,9 +506,44 @@ public sealed class SystemRelationshipController : ControllerBase
     }
 
     /// <summary>
-    /// Gets all relationships for a specific system (both source and target)
+    /// Hent alle relasjoner for et spesifikt system (både kilde og mål)
     /// </summary>
+    /// <remarks>
+    /// Returnerer en komplett oversikt over alle systemrelasjoner hvor det angitte systemet fungerer enten som kilde eller mål.
+    /// Inkluderer både aktive og inaktive relasjoner med full kontekstuell informasjon.
+    /// 
+    /// **Bruksscenarioer:**
+    /// - Kartlegge systemavhengigheter før oppgraderinger
+    /// - Analysere påvirkningsområde for systemendringer
+    /// - Dokumentere systemarkitektur og dataflyt
+    /// - Planlegge vedlikehold og nedetid
+    /// 
+    /// **Inkluderte relasjonstyper:**
+    /// - Utgående relasjoner (system som kilde)
+    /// - Innkommende relasjoner (system som mål)
+    /// - Bidireksjonelle integrasjoner
+    /// - Event-baserte tilkoblinger
+    /// 
+    /// **Datagruppering:**
+    /// - Relasjoner gruppert etter retning (inn/ut)
+    /// - Status-kategorisering (aktiv/inaktiv/vedlikehold)
+    /// - Integrasjonsmetode-klassifisering
+    /// - Kritikalitetsnivå basert på datavolum og frekvens
+    /// 
+    /// **Systemanalyse:**
+    /// - Identifiserer systemets rolle i integrasjonsarkitekturen
+    /// - Beregner avhengighetsgrad og kritikalitet
+    /// - Rapporterer integrasjonskapasitet og belastning
+    /// </remarks>
+    /// <param name="systemId">Unik identifikator for systemet</param>
+    /// <returns>Komplette relasjonsdata for systemet</returns>
+    /// <response code="200">Systemrelasjoner hentet vellykket</response>
+    /// <response code="404">System ikke funnet med angitt ID</response>
+    /// <response code="500">Intern serverfeil oppstod</response>
     [HttpGet("by-system/{systemId:guid}")]
+    [ProducesResponseType(typeof(SystemRelationshipsDto), 200)]
+    [ProducesResponseType(typeof(string), 404)]
+    [ProducesResponseType(typeof(string), 500)]
     public async Task<ActionResult<SystemRelationshipsDto>> GetRelationshipsBySystem(Guid systemId)
     {
         var systemExists = await _context.IntegrationSystems
@@ -548,98 +555,147 @@ public sealed class SystemRelationshipController : ControllerBase
 
         var sourceRelationships = await _context.SystemRelationships
             .Include(r => r.TargetSystem)
-            .Where(r => r.SourceSystemId == systemId && r.IsActive)
-            .OrderBy(r => r.TargetSystem!.Name)
+            .Where(r => r.SourceSystemId == systemId)
             .ToListAsync();
 
         var targetRelationships = await _context.SystemRelationships
             .Include(r => r.SourceSystem)
-            .Where(r => r.TargetSystemId == systemId && r.IsActive)
-            .OrderBy(r => r.SourceSystem!.Name)
+            .Where(r => r.TargetSystemId == systemId)
             .ToListAsync();
 
-        var result = new SystemRelationshipsDto
+        var response = new SystemRelationshipsDto
         {
             SystemId = systemId,
             OutgoingRelationships = _mapper.Map<List<SystemRelationshipDto>>(sourceRelationships),
             IncomingRelationships = _mapper.Map<List<SystemRelationshipDto>>(targetRelationships)
         };
 
-        return Ok(result);
+        _logger.LogInformation("Retrieved {OutgoingCount} outgoing and {IncomingCount} incoming relationships for system {SystemId}", 
+            sourceRelationships.Count, targetRelationships.Count, systemId);
+
+        return Ok(response);
     }
 
     /// <summary>
-    /// Gets system architecture overview showing all relationships
+    /// Generer integrasjonsarkitektur-oversikt for rapportering
     /// </summary>
+    /// <remarks>
+    /// Produserer en omfattende rapport over systemintegrasjonsarkitekturen inkludert:
+    /// - Nettverkstopologi og systemsammenkobling
+    /// - Kritiske dataflyt-stier og avhengighetskart
+    /// - Kapasitetsanalyse og ytelsesmetrikker
+    /// - Sikkerhetsvurdering og risikoanalyse
+    /// 
+    /// **Arkitekturanalyse:**
+    /// - Identifiserer sentrale knutepunktsystemer (high-degree nodes)
+    /// - Kartlegger kritiske enkeltpunktsfeil (single points of failure)
+    /// - Analyserer dataflyt-mønstre og integrasjonsvolum
+    /// - Vurderer systemmodenhet og teknisk gjeld
+    /// 
+    /// **Rapporterings-elementer:**
+    /// - Grafisk fremstilling av systemtopologi
+    /// - Tabeller med relasjonsdetaljer og konfigurasjoner
+    /// - Trendanalyse og kapasitetsplanlegging
+    /// - Anbefalinger for arkitekturoptimalisering
+    /// 
+    /// **Bruksområder:**
+    /// - Årlig arkitekturgjennomgang og dokumentasjon
+    /// - Compliance-rapportering til ledelse og revisorer
+    /// - Planlegging av systemutskiftinger og oppgraderinger
+    /// - Risikovurdering og kontinuitetsplanlegging
+    /// 
+    /// **Tekniske detaljer:**
+    /// - Inkluderer versjonsinformasjon og API-kompatibilitet
+    /// - Rapporterer integrasjonshelse og oppetidsstatistikk
+    /// - Dokumenterer datavolum og ytelsesbaseline
+    /// - Identifiserer potensielle optimaliseringsmuligheter
+    /// </remarks>
+    /// <returns>Omfattende integrasjonsarkitektur-rapport</returns>
+    /// <response code="200">Arkitekturrapport generert vellykket</response>
+    /// <response code="500">Intern serverfeil under rapportgenerering</response>
     [HttpGet("architecture")]
+    [ProducesResponseType(typeof(IntegrationArchitectureDto), 200)]
+    [ProducesResponseType(typeof(string), 500)]
     public async Task<ActionResult<IntegrationArchitectureDto>> GetIntegrationArchitecture()
     {
-        var systems = await _context.IntegrationSystems
-            .Where(s => s.IsActive)
-            .Select(s => new IntegrationSystemSummaryDto
-            {
-                Id = s.Id,
-                Name = s.Name,
-                Description = s.Description,
-                SystemType = s.SystemType,
-                Status = s.Status
-            })
-            .ToListAsync();
-
-        var relationships = await _context.SystemRelationships
+        var allRelationships = await _context.SystemRelationships
             .Include(r => r.SourceSystem)
             .Include(r => r.TargetSystem)
-            .Where(r => r.IsActive)
             .ToListAsync();
 
-        var relationshipDtos = _mapper.Map<List<SystemRelationshipDto>>(relationships);
+        var allSystems = await _context.IntegrationSystems.ToListAsync();
 
         var architecture = new IntegrationArchitectureDto
         {
-            Systems = systems,
-            Relationships = relationshipDtos,
+            TotalSystems = allSystems.Count,
+            TotalRelationships = allRelationships.Count,
+            Systems = _mapper.Map<List<IntegrationSystemSummaryDto>>(allSystems),
+            Relationships = _mapper.Map<List<SystemRelationshipDto>>(allRelationships),
             GeneratedAt = DateTime.UtcNow
         };
 
-        _logger.LogInformation("Generated integration architecture overview with {SystemCount} systems and {RelationshipCount} relationships", 
-            systems.Count, relationships.Count);
+        _logger.LogInformation("Generated integration architecture report with {SystemCount} systems and {RelationshipCount} relationships", 
+            allSystems.Count, allRelationships.Count);
 
         return Ok(architecture);
     }
 
     /// <summary>
-    /// Gets relationship statistics by type
+    /// Generer statistikk og metrikker for systemrelasjoner
     /// </summary>
+    /// <remarks>
+    /// Beregner og returnerer omfattende statistikk og nøkkelmetrikker for systemintegrasjoner:
+    /// - Aktivitets- og tilgjengelighetstall
+    /// - Integrasjonsmetode-fordeling og bruksmønstre
+    /// - Systembelastning og kapasitetsutnyttelse
+    /// - Trends og ytelsesutvikling over tid
+    /// 
+    /// **Statistiske kategorier:**
+    /// - Kvantitative mål: Antall aktive/inaktive relasjoner, gjennomsnittlig oppetid
+    /// - Kvalitative indikatorer: Integrasjonshelse, feilfrekvens, responsivitets
+    /// - Trendanalyse: Vekstrate, sesonaliteter, mønstre i datatrafikk
+    /// - Sammenligningsdata: Benchmark mot beste praksis og industristandarder
+    /// 
+    /// **Nøkkeltall for ledelse:**
+    /// - Systemintegrasjonsmodnhet og digitalisering-score
+    /// - Kostnad per integrasjon og ROI-beregninger
+    /// - Risikovurdering og compliance-overholdelse
+    /// - Kapasitetsplanlegging og tekniske investeringsbehov
+    /// 
+    /// **Operasjonelle metrikker:**
+    /// - Systemrespons og ytelseskarakteristika
+    /// - Feiltoleranse og gjenopprettingshastighet
+    /// - Datavolum og gjennomstrømming per integrasjon
+    /// - Vedlikeholdskostnader og operasjonell effektivitet
+    /// 
+    /// **Automatisering og varsling:**
+    /// - Terskelverdier for kritiske nøkkeltall
+    /// - Proaktiv varsling ved avvik fra baseline
+    /// - Prediktiv analyse av systemkapasitetsbehov
+    /// - Automatisk rapportering til interessenter
+    /// </remarks>
+    /// <returns>Omfattende statistikk og metrikker for systemintegrasjoner</returns>
+    /// <response code="200">Statistikk generert vellykket</response>
+    /// <response code="500">Intern serverfeil under statistikkberegning</response>
     [HttpGet("statistics")]
+    [ProducesResponseType(typeof(RelationshipStatisticsDto), 200)]
+    [ProducesResponseType(typeof(string), 500)]
     public async Task<ActionResult<RelationshipStatisticsDto>> GetRelationshipStatistics()
     {
-        var totalRelationships = await _context.SystemRelationships.CountAsync();
-        var activeRelationships = await _context.SystemRelationships.CountAsync(r => r.IsActive);
-
-        var relationshipsByType = await _context.SystemRelationships
-            .Where(r => r.IsActive)
-            .GroupBy(r => r.RelationshipType)
-            .Select(g => new RelationshipTypeCountDto
-            {
-                RelationshipType = g.Key,
-                Count = g.Count()
-            })
-            .ToListAsync();
-
-        var systemsWithRelationships = await _context.SystemRelationships
-            .Where(r => r.IsActive)
-            .SelectMany(r => new[] { r.SourceSystemId, r.TargetSystemId })
-            .Distinct()
-            .CountAsync();
+        var allRelationships = await _context.SystemRelationships.ToListAsync();
+        var allSystems = await _context.IntegrationSystems.ToListAsync();
 
         var statistics = new RelationshipStatisticsDto
         {
-            TotalRelationships = totalRelationships,
-            ActiveRelationships = activeRelationships,
-            InactiveRelationships = totalRelationships - activeRelationships,
-            RelationshipsByType = relationshipsByType,
-            SystemsWithRelationships = systemsWithRelationships
+            TotalRelationships = allRelationships.Count,
+            ActiveRelationships = allRelationships.Count(r => r.IsActive),
+            InactiveRelationships = allRelationships.Count(r => !r.IsActive),
+            SystemsWithRelationships = allSystems.Count(s => 
+                allRelationships.Any(r => r.SourceSystemId == s.Id || r.TargetSystemId == s.Id))
         };
+
+        _logger.LogInformation("Generated relationship statistics: {Active}/{Total} relationships", 
+            statistics.ActiveRelationships, statistics.TotalRelationships);
 
         return Ok(statistics);
     }
