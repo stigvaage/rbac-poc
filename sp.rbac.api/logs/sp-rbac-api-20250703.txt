@@ -621,3 +621,36 @@ System.IO.IOException: Failed to bind to address http://127.0.0.1:5109: address 
    at Microsoft.Extensions.Hosting.HostingAbstractionsHostExtensions.RunAsync(IHost host, CancellationToken token)
    at Microsoft.Extensions.Hosting.HostingAbstractionsHostExtensions.Run(IHost host)
    at Program.<Main>$(String[] args) in /Users/shv/Documents/sp-rbac-poc/sp.rbac.api/Program.cs:line 199
+2025-07-03 23:25:46.031 +02:00 [INF] Starting SP.RBAC.API application
+2025-07-03 23:25:46.434 +02:00 [INF] Starting test data seeding
+2025-07-03 23:25:46.723 +02:00 [WRN] Entity 'IntegrationDocument' has a global query filter defined and is the required end of a relationship with the entity 'IntegrationDocumentHistory'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+2025-07-03 23:25:46.724 +02:00 [WRN] Entity 'IntegrationMapping' has a global query filter defined and is the required end of a relationship with the entity 'IntegrationMappingHistory'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+2025-07-03 23:25:46.940 +02:00 [INF] Saved 3 entities to in-memory store.
+2025-07-03 23:25:46.943 +02:00 [INF] Seeded 3 integration systems
+2025-07-03 23:25:47.018 +02:00 [INF] Saved 5 entities to in-memory store.
+2025-07-03 23:25:47.018 +02:00 [INF] Seeded 5 entity definitions
+2025-07-03 23:25:47.064 +02:00 [INF] Saved 8 entities to in-memory store.
+2025-07-03 23:25:47.064 +02:00 [INF] Seeded 8 property definitions
+2025-07-03 23:25:47.090 +02:00 [INF] Saved 6 entities to in-memory store.
+2025-07-03 23:25:47.090 +02:00 [INF] Seeded 6 entity instances
+2025-07-03 23:25:47.122 +02:00 [INF] Saved 10 entities to in-memory store.
+2025-07-03 23:25:47.123 +02:00 [INF] Seeded 10 audit logs
+2025-07-03 23:25:47.123 +02:00 [INF] Test data seeding completed successfully
+2025-07-03 23:25:47.268 +02:00 [INF] Now listening on: http://localhost:5110
+2025-07-03 23:25:47.268 +02:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-07-03 23:25:47.268 +02:00 [INF] Hosting environment: Development
+2025-07-03 23:25:47.268 +02:00 [INF] Content root path: /Users/shv/Documents/sp-rbac-poc/sp.rbac.api
+2025-07-03 23:27:13.225 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5110/swagger?id=fcbe67d4-ebdf-431a-9c8f-fcb3df057338&vscodeBrowserReqId=1751578033195 - null null
+2025-07-03 23:27:13.318 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5110/swagger?id=fcbe67d4-ebdf-431a-9c8f-fcb3df057338&vscodeBrowserReqId=1751578033195 - 301 0 null 93.2302ms
+2025-07-03 23:27:13.325 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5110/swagger/index.html - null null
+2025-07-03 23:27:13.354 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5110/swagger/index.html - 200 null text/html;charset=utf-8 28.6876ms
+2025-07-03 23:27:13.360 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5110/swagger/index.js - null null
+2025-07-03 23:27:13.362 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5110/swagger/index.js - 200 null application/javascript;charset=utf-8 1.6307ms
+2025-07-03 23:27:13.548 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5110/swagger/v1/swagger.json - null null
+2025-07-03 23:27:13.759 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5110/swagger/v1/swagger.json - 200 null application/json;charset=utf-8 210.9335ms
+2025-07-03 23:48:32.930 +02:00 [INF] Request starting HTTP/1.1 GET http://localhost:5110/health - null null
+2025-07-03 23:48:32.932 +02:00 [WRN] Failed to determine the https port for redirect.
+2025-07-03 23:48:32.934 +02:00 [INF] Executing endpoint 'Health checks'
+2025-07-03 23:48:32.948 +02:00 [INF] Executed endpoint 'Health checks'
+2025-07-03 23:48:32.948 +02:00 [INF] Request finished HTTP/1.1 GET http://localhost:5110/health - 200 null text/plain 18.797ms
+2025-07-03 23:48:38.946 +02:00 [INF] Application is shutting down...

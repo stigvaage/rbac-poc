@@ -1,11 +1,24 @@
-# SP.RBAC.API - Rollebasert tilgangskontroll API
+# SP.RBAC.API - SharePoint Role-Based Access Control POC
 
 [![.NET](https://img.shields.io/badge/.NET-9.0-blue.svg)](https://dotnet.microsoft.com/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Status](https://img.shields.io/badge/Status-Aktiv%20utvikling-green.svg)](PROGRESS.md)
+[![Swagger](https://img.shields.io/badge/Swagger-Operativ-brightgreen.svg)](http://localhost:5110/swagger)
+[![Progress](https://img.shields.io/badge/Dokumentasjon-42%25-yellow.svg)](PROGRESS.md#dokumentasjonsstatus)
 
-En omfattende .NET 9 Web API for håndtering av rollebasert tilgangskontroll med støtte for integrasjonssystemer, entitetsdefinisjoner, egenskapsdefinisjoner og entitetsinstanser.
+Proof of Concept (POC) for et fleksibelt rolle-basert tilgangskontrollsystem designet for SharePoint-miljøer. Systemet støtter dynamisk håndtering av entiteter, egenskaper og tilgangsregler på tvers av flere integrasjonssystemer.
 
-> **Merk**: Dette er et Proof of Concept (PoC) repository som demonstrerer moderne .NET-arkitektur og beste praksis for rollebasert tilgangskontroll.
+> **💡 Ny her?** → **[Les QUICK-START.md for 5-minutters hurtigstart](QUICK-START.md)** ←
+
+## 📊 Prosjektstatus
+
+- **Operativ URL**: [http://localhost:5110/swagger](http://localhost:5110/swagger)
+- **API-endepunkter**: 48+ implementert og operative
+- **Norsk dokumentasjon**: 32/77 metoder (42%) fullstendig dokumentert
+- **Arkitektur**: Clean Architecture og DDD-prinsipper implementert
+- **Testing**: Påkrevd - ingen automatiserte tester implementert ennå
+
+📈 **Se [PROGRESS.md](PROGRESS.md) for detaljert fremdriftssporing og neste steg**
 
 ## Funksjonalitet
 

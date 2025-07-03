@@ -9,26 +9,26 @@ using Swashbuckle.AspNetCore.Annotations;
 namespace SP.RBAC.API.Controllers;
 
 /// <summary>
-/// Entity Definitions API - Manages dynamic entity definitions from external integration systems
+/// Administrerer entitetsdefinisjoner som definerer struktur og metadata for dataentiteter fra eksterne systemer
 /// </summary>
 /// <remarks>
-/// Entity definitions represent the structure and metadata for data entities imported from external systems.
-/// Each entity definition belongs to an integration system and defines the schema for entity instances.
+/// Entitetsdefinisjoner representerer strukturen og metadataene for dataentiteter importert fra eksterne systemer.
+/// Hver entitetsdefinisjon tilhører et integrasjonssystem og definerer skjemaet for entitetsinstanser.
 /// 
-/// **Key Features:**
-/// - Define entities from external systems (HR employees, EMR patients, CRM contacts)
-/// - Configure entity metadata including table names and primary key fields
-/// - Manage hierarchical relationships between entities
-/// - Support for custom sorting and display preferences
-/// - Flexible metadata storage for system-specific configurations
+/// **Hovedfunksjoner:**
+/// - Definere entiteter fra eksterne systemer (HR-ansatte, EMR-pasienter, CRM-kontakter)
+/// - Konfigurere entitetsmetadata inkludert tabellnavn og primærnøkkelfelt
+/// - Administrere hierarkiske relasjoner mellom entiteter
+/// - Støtte for tilpasset sortering og visningsinnstillinger
+/// - Fleksibel metadata-lagring for systemspesifikke konfigurasjoner
 /// 
-/// **Common Use Cases:**
-/// - Define "Employee" entity from HR system with table mapping
-/// - Configure "Patient" entity from EMR system with privacy settings
-/// - Set up "Customer" entity from CRM system with relationship mappings
-/// - Establish entity hierarchies for organizational structures
+/// **Vanlige brukstilfeller:**
+/// - Definere "Ansatt"-entitet fra HR-system med tabellmapping
+/// - Konfigurere "Pasient"-entitet fra EMR-system med personverninnstillinger
+/// - Sette opp "Kunde"-entitet fra CRM-system med relasjonsmapping
+/// - Etablere entitetshierarkier for organisasjonsstrukturer
 /// 
-/// **Sample Requests:**
+/// **Eksempelforespørsler:**
 /// ```json
 /// POST /api/entitydefinitions
 /// {

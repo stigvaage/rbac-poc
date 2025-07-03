@@ -8,14 +8,36 @@ using SP.RBAC.API.Entities;
 namespace SP.RBAC.API.Controllers;
 
 /// <summary>
-/// Manages integration systems that connect external systems to the RBAC platform.
-/// Integration systems represent external data sources like HR systems, EMR systems, 
-/// Active Directory, and other enterprise applications.
+/// Administrerer integrasjonssystemer som kobler eksterne systemer til RBAC-plattformen
 /// </summary>
 /// <remarks>
-/// This controller provides full CRUD operations for integration systems along with
-/// advanced features like connection testing, system health monitoring, and bulk operations.
-/// All operations support pagination, filtering, and comprehensive error handling.
+/// Integrasjonssystemer representerer eksterne datakilder som HR-systemer, EMR-systemer,
+/// Active Directory og andre enterprise-applikasjoner. Denne kontrolleren gir omfattende
+/// CRUD-operasjoner samt avanserte funksjoner for tilkoblingstesting, systemovervåking og bulk-operasjoner.
+/// 
+/// **Hovedfunksjoner:**
+/// - Administrere eksterne systemtilkoblinger og konfigurasjoner
+/// - Teste tilkoblinger og overvåke systemhelse
+/// - Konfigurere autentiseringsinformasjon og sikkerhetsinnstillinger
+/// - Håndtere systemmetadata og integrasjonsparametere
+/// - Massoperasjoner for effektiv systemadministrasjon
+/// 
+/// **Støttede systemtyper:**
+/// - HR-systemer (ansattdata, organisasjonsstrukturer)
+/// - EMR/EHR-systemer (pasientdata, klinisk informasjon)
+/// - CRM-systemer (kundedata, salgsrelasjoner)
+/// - Active Directory (brukerautentisering, gruppemedlemskap)
+/// - Enterprise Resource Planning (ERP) systemer
+/// - Egendefinerte API-er og databaser
+/// 
+/// **Sikkerhetsaspekter:**
+/// - Kryptert lagring av tilkoblingsinformasjon og credentials
+/// - Sikker kommunikasjon med eksterne systemer via HTTPS/TLS
+/// - Regelmessig validering av tilkoblinger og certificates
+/// - Audit-logging av alle system-interaksjoner
+/// - Rate limiting og throttling for å forhindre overbelastning
+/// 
+/// Alle operasjoner støtter paginering, filtrering og omfattende feilhåndtering.
 /// </remarks>
 [ApiController]
 [Route("api/[controller]")]

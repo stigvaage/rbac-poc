@@ -455,26 +455,26 @@
         </member>
         <member name="T:SP.RBAC.API.Controllers.EntityDefinitionsController">
             <summary>
-            Entity Definitions API - Manages dynamic entity definitions from external integration systems
+            Administrerer entitetsdefinisjoner som definerer struktur og metadata for dataentiteter fra eksterne systemer
             </summary>
             <remarks>
-            Entity definitions represent the structure and metadata for data entities imported from external systems.
-            Each entity definition belongs to an integration system and defines the schema for entity instances.
+            Entitetsdefinisjoner representerer strukturen og metadataene for dataentiteter importert fra eksterne systemer.
+            Hver entitetsdefinisjon tilhører et integrasjonssystem og definerer skjemaet for entitetsinstanser.
             
-            **Key Features:**
-            - Define entities from external systems (HR employees, EMR patients, CRM contacts)
-            - Configure entity metadata including table names and primary key fields
-            - Manage hierarchical relationships between entities
-            - Support for custom sorting and display preferences
-            - Flexible metadata storage for system-specific configurations
+            **Hovedfunksjoner:**
+            - Definere entiteter fra eksterne systemer (HR-ansatte, EMR-pasienter, CRM-kontakter)
+            - Konfigurere entitetsmetadata inkludert tabellnavn og primærnøkkelfelt
+            - Administrere hierarkiske relasjoner mellom entiteter
+            - Støtte for tilpasset sortering og visningsinnstillinger
+            - Fleksibel metadata-lagring for systemspesifikke konfigurasjoner
             
-            **Common Use Cases:**
-            - Define "Employee" entity from HR system with table mapping
-            - Configure "Patient" entity from EMR system with privacy settings
-            - Set up "Customer" entity from CRM system with relationship mappings
-            - Establish entity hierarchies for organizational structures
+            **Vanlige brukstilfeller:**
+            - Definere "Ansatt"-entitet fra HR-system med tabellmapping
+            - Konfigurere "Pasient"-entitet fra EMR-system med personverninnstillinger
+            - Sette opp "Kunde"-entitet fra CRM-system med relasjonsmapping
+            - Etablere entitetshierarkier for organisasjonsstrukturer
             
-            **Sample Requests:**
+            **Eksempelforespørsler:**
             ```json
             POST /api/entitydefinitions
             {
@@ -741,6 +741,48 @@
             <response code="404">Entity definition not found with the specified ID</response>
             <response code="500">Internal server error occurred</response>
         </member>
+        <member name="T:SP.RBAC.API.Controllers.EntityInstancesController">
+            <summary>
+            Administrerer entitetsinstanser som representerer faktiske dataobjekter fra eksterne systemer
+            </summary>
+            <remarks>
+            Entitetsinstanser er konkrete implementasjoner av entitetsdefinisjoner med faktiske dataverdier
+            fra eksterne systemer. Hver instans representerer en spesifikk oppføring som en ansatt,
+            pasient, kunde eller annet dataobjekt definert i tilhørende entitetsdefinisjon.
+            
+            **Hovedfunksjoner:**
+            - Administrere livssyklusen til entitetsinstanser fra opprettelse til sletting
+            - Synkronisere data mellom eksterne systemer og RBAC-plattformen
+            - Håndtere entitetsrelasjoner og referanseintegritet
+            - Spore endringer og opprettholde revisjonsspor
+            - Validere datainnhold mot entitetsdefinisjoner
+            
+            **Datasynkronisering:**
+            - Automatisk import av data fra eksterne systemer
+            - Konfliktløsning ved samtidige oppdateringer
+            - Delta-synkronisering for optimal ytelse
+            - Feilhåndtering og retry-mekanismer
+            - Planlagt og triggeret synkronisering
+            
+            **Relasjonshåndtering:**
+            - Hierarkiske relasjoner (forelder-barn strukturer)
+            - Kryssreferanser mellom entiteter fra ulike systemer
+            - Referanseintegritet og orphan detection
+            - Bulk-operasjoner for relaterte entiteter
+            
+            **Ytelse og skalerbarhet:**
+            - Optimaliserte spørringer med indeksering
+            - Lazy loading av relaterte data
+            - Batch-processing for bulk-operasjoner
+            - Caching av hyppig tilgåtte data
+            
+            **Audit og compliance:**
+            - Detaljert logging av alle endringer
+            - Historikk-sporing med tidsstempler
+            - Data lineage og kildesporing
+            - GDPR og personvernkompatibilitet
+            </remarks>
+        </member>
         <member name="M:SP.RBAC.API.Controllers.EntityInstancesController.GetEntityInstances(System.Int32,System.Int32,System.String,System.Nullable{System.Guid},System.Nullable{System.Boolean},System.Nullable{SP.RBAC.API.Entities.SyncStatus})">
             <summary>
             Get all entity instances with pagination
@@ -868,14 +910,36 @@
         </member>
         <member name="T:SP.RBAC.API.Controllers.IntegrationSystemsController">
             <summary>
-            Manages integration systems that connect external systems to the RBAC platform.
-            Integration systems represent external data sources like HR systems, EMR systems, 
-            Active Directory, and other enterprise applications.
+            Administrerer integrasjonssystemer som kobler eksterne systemer til RBAC-plattformen
             </summary>
             <remarks>
-            This controller provides full CRUD operations for integration systems along with
-            advanced features like connection testing, system health monitoring, and bulk operations.
-            All operations support pagination, filtering, and comprehensive error handling.
+            Integrasjonssystemer representerer eksterne datakilder som HR-systemer, EMR-systemer,
+            Active Directory og andre enterprise-applikasjoner. Denne kontrolleren gir omfattende
+            CRUD-operasjoner samt avanserte funksjoner for tilkoblingstesting, systemovervåking og bulk-operasjoner.
+            
+            **Hovedfunksjoner:**
+            - Administrere eksterne systemtilkoblinger og konfigurasjoner
+            - Teste tilkoblinger og overvåke systemhelse
+            - Konfigurere autentiseringsinformasjon og sikkerhetsinnstillinger
+            - Håndtere systemmetadata og integrasjonsparametere
+            - Massoperasjoner for effektiv systemadministrasjon
+            
+            **Støttede systemtyper:**
+            - HR-systemer (ansattdata, organisasjonsstrukturer)
+            - EMR/EHR-systemer (pasientdata, klinisk informasjon)
+            - CRM-systemer (kundedata, salgsrelasjoner)
+            - Active Directory (brukerautentisering, gruppemedlemskap)
+            - Enterprise Resource Planning (ERP) systemer
+            - Egendefinerte API-er og databaser
+            
+            **Sikkerhetsaspekter:**
+            - Kryptert lagring av tilkoblingsinformasjon og credentials
+            - Sikker kommunikasjon med eksterne systemer via HTTPS/TLS
+            - Regelmessig validering av tilkoblinger og certificates
+            - Audit-logging av alle system-interaksjoner
+            - Rate limiting og throttling for å forhindre overbelastning
+            
+            Alle operasjoner støtter paginering, filtrering og omfattende feilhåndtering.
             </remarks>
         </member>
         <member name="M:SP.RBAC.API.Controllers.IntegrationSystemsController.GetIntegrationSystems(System.Int32,System.Int32,System.String,System.Nullable{System.Boolean})">

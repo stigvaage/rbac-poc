@@ -7,6 +7,45 @@ using SP.RBAC.API.Entities;
 
 namespace SP.RBAC.API.Controllers;
 
+/// <summary>
+/// Administrerer egenskapsverdier som representerer faktiske dataverdier for entitetsinstanser
+/// </summary>
+/// <remarks>
+/// Egenskapsverdier implementerer Entity-Attribute-Value (EAV) mønsteret og representerer
+/// de faktiske dataene knyttet til entitetsinstanser basert på deres egenskapsdefinisjoner.
+/// Hver egenskapsverdi lagrer både rå data og formaterte visningsverdier med full
+/// historikk og validering mot definerte datatyper og forretningsregler.
+/// 
+/// **EAV-arkitektur:**
+/// - Fleksibel datamodellering uten skjemaendringer i database
+/// - Dynamisk tilpasning til nye datatyper og egenskaper
+/// - Skalerbar håndtering av heterogene datastrukturer
+/// - Optimalisert for komplekse entitetsrelasjoner på tvers av systemer
+/// 
+/// **Datatyper og validering:**
+/// - Støtte for alle primitive datatyper (tekst, tall, datoer, booleaner)
+/// - Komplekse datatyper som JSON, XML og binære data
+/// - Automatisk validering mot egenskapsdefinisjonens regler
+/// - Formatering og lokalisering av visningsverdier
+/// 
+/// **Historikk og audit:**
+/// - Komplett endringslogging med tidsstempler og brukeridentifikasjon
+/// - Versjonering av egenskapsverdier for historisk analyse
+/// - Data lineage og kildesystem-sporing
+/// - GDPR-kompatibel håndtering av persondata med slettingsmuligheter
+/// 
+/// **Ytelse og optimalisering:**
+/// - Indekserte spørringer på hyppig tilgåtte egenskaper
+/// - Caching av statiske og referansedata
+/// - Bulk-operasjoner for masseimport og synkronisering
+/// - Delta-oppdateringer for optimal nettverkstrafikk
+/// 
+/// **Forretningslogikk:**
+/// - Støtte for standardverdier og beregnede felter
+/// - Validering av forretningsregler på tvers av egenskaper
+/// - Automatisk transformasjon mellom interne og eksterne dataformater
+/// - Konfliktløsning ved samtidige oppdateringer fra flere kilder
+/// </remarks>
 [ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
@@ -24,15 +63,48 @@ public class PropertyValuesController : ControllerBase
     }
 
     /// <summary>
-    /// Get all property values with optional filtering and pagination
+    /// Henter alle egenskapsverdier med avansert filtrering og paginering
     /// </summary>
-    /// <param name="page">Page number (1-based)</param>
-    /// <param name="pageSize">Number of items per page</param>
-    /// <param name="entityInstanceId">Filter by entity instance ID</param>
-    /// <param name="propertyDefinitionId">Filter by property definition ID</param>
-    /// <param name="isDefault">Filter by default status</param>
-    /// <param name="search">Search in value and display value</param>
-    /// <returns>Paginated list of property values</returns>
+    /// <remarks>
+    /// Returnerer en omfattende oversikt over egenskapsverdier i systemet med støtte
+    /// for detaljert filtrering basert på entitetsinstanser, egenskapsdefinisjoner
+    /// og verdistatus. Operasjonen inkluderer alle relaterte entiteter for
+    /// fullstendig kontekst og forretningsforståelse.
+    /// 
+    /// **Filtreringsmuligheter:**
+    /// - Entitetsinstans-filtrering for å hente alle egenskaper til en spesifikk entitet
+    /// - Egenskapsdefinisjon-filtrering for å analysere verdier for en bestemt egenskap
+    /// - Standardverdi-filtrering for å skille mellom eksplisitte og beregnede verdier
+    /// - Fritekstsøk i både rå verdier og formaterte visningsverdier
+    /// 
+    /// **Sikkerhetsvurderinger:**
+    /// - Kan eksponere sensitive persondata og forretningskritisk informasjon
+    /// - Rå verdier kan inneholde ukrypterte sensitive data
+    /// - Søkefunksjonalitet kan avsløre eksistensen av konfidensielle datastrukturer
+    /// - Krever streng tilgangskontroll basert på dataklassifisering
+    /// 
+    /// **Ytelsesoptimalisering:**
+    /// - Eager loading av entitetsinstanser og egenskapsdefinisjoner
+    /// - Optimaliserte indekser på hyppig filtrerte felter
+    /// - Paginering kritisk for store datasett med mange egenskapsverdier
+    /// - Caching av metadata for reduserte database-kall
+    /// 
+    /// **Forretningsbruk:**
+    /// - Datakvalitetsanalyse og validering av egenskapsverdier
+    /// - Rapportering og compliance-dokumentasjon
+    /// - Feilsøking av synkroniseringsproblemer mellem systemer
+    /// - Grunnlag for datamigrering og transformasjonsprosesser
+    /// </remarks>
+    /// <param name="page">Sidenummer for paginering (1-basert, standard: 1)</param>
+    /// <param name="pageSize">Antall elementer per side (standard: 10, anbefalt maksimum: 100)</param>
+    /// <param name="entityInstanceId">Filtrer på spesifikk entitetsinstans for å hente alle dens egenskaper</param>
+    /// <param name="propertyDefinitionId">Filtrer på spesifikk egenskapsdefinisjon for verdianalyse</param>
+    /// <param name="isDefault">Filtrer på standardverdi-status (null=alle, true=standardverdier, false=eksplisitte verdier)</param>
+    /// <param name="search">Fritekstsøk i verdier og visningsverdier for datainnhold</param>
+    /// <returns>Paginert resultat med egenskapsverdier og fullstendig kontekstinformasjon</returns>
+    /// <response code="200">Returnerer paginert liste over egenskapsverdier med relaterte entiteter</response>
+    /// <response code="400">Ugyldig forespørsel - valideringsfeil i filtreringsparametere</response>
+    /// <response code="500">Intern serverfeil under henting av egenskapsverdier</response>
     [HttpGet]
     public async Task<ActionResult<PagedResult<PropertyValueDto>>> GetPropertyValues(
         [FromQuery] int page = 1,
@@ -97,10 +169,37 @@ public class PropertyValuesController : ControllerBase
     }
 
     /// <summary>
-    /// Get property value by ID
+    /// Henter en spesifikk egenskapsverdi med komplett kontekstinformasjon
     /// </summary>
-    /// <param name="id">Property value ID</param>
-    /// <returns>Property value details</returns>
+    /// <remarks>
+    /// Returnerer detaljert informasjon om en enkelt egenskapsverdi inkludert
+    /// alle relaterte entiteter som entitetsinstans, entitetsdefinisjon og
+    /// egenskapsdefinisjon. Operasjonen gir fullstendig kontekst for å forstå
+    /// verdiens betydning og bruk i forretningsprosessene.
+    /// 
+    /// **Datainnhold:**
+    /// - Komplett egenskapsverdi med både rå verdi og formatert visningsverdi
+    /// - Tilknyttet entitetsinstans med full entitetskontekst
+    /// - Egenskapsdefinisjon med datatype og valideringsregler
+    /// - Metadata som standardverdi-status og audit-informasjon
+    /// 
+    /// **Sikkerhetsvurderinger:**
+    /// - Kan eksponere sensitive persondata eller forretningskritisk informasjon
+    /// - Returnerer rå dataverdier som kan være ukrypterte
+    /// - Eksponerer interne datastrukturer og systemreferanser
+    /// - Krever tilgangskontroll basert på dataklassifisering og brukertilgang
+    /// 
+    /// **Forretningsbruk:**
+    /// - Detaljert analyse av spesifikke datafelter og verdier
+    /// - Feilsøking av datavalidering og transformasjonsproblemer
+    /// - Audit og compliance-sporing av individuelle dataelementer
+    /// - Grunnlag for datakorrigering og kvalitetsforbedring
+    /// </remarks>
+    /// <param name="id">Unik identifikator for egenskapsverdien som skal hentes</param>
+    /// <returns>Komplett egenskapsverdi med all relatert kontekstinformasjon</returns>
+    /// <response code="200">Egenskapsverdi funnet og returnert med komplett datainnhold</response>
+    /// <response code="404">Egenskapsverdi med angitt ID eksisterer ikke i systemet</response>
+    /// <response code="500">Intern serverfeil under henting av egenskapsverdi</response>
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<PropertyValueDto>> GetPropertyValue(Guid id)
     {
@@ -126,10 +225,45 @@ public class PropertyValuesController : ControllerBase
     }
 
     /// <summary>
-    /// Create a new property value
+    /// Oppretter en ny egenskapsverdi med validering og forretningsregelsjekk
     /// </summary>
-    /// <param name="dto">Property value creation data</param>
-    /// <returns>Created property value</returns>
+    /// <remarks>
+    /// Oppretter en ny egenskapsverdi for en eksisterende entitetsinstans basert på
+    /// en definert egenskapsdefinisjon. Operasjonen utfører omfattende validering
+    /// av refererte entiteter, datatype-kompatibilitet og forretningsregler før
+    /// opprettelse av den nye egenskapsverdien.
+    /// 
+    /// **Valideringsregler:**
+    /// - Entitetsinstans må eksistere og være aktiv i systemet
+    /// - Egenskapsdefinisjon må eksistere og være gyldig for entitetsdefinisjonen
+    /// - Sjekk for eksisterende egenskapsverdier for samme entitet og egenskap
+    /// - Datatype-validering mot egenskapsdefinisjonens spesifikasjoner
+    /// - Forretningsregelvalidering hvis konfigurert på egenskapsdefinisjonen
+    /// 
+    /// **Datahåndtering:**
+    /// - Automatisk formatering av visningsverdi basert på datatype
+    /// - Transformasjon og normalisering av inngående dataverdier
+    /// - Støtte for standardverdier hvis ikke eksplisitt spesifisert
+    /// - Validering av verdiområder og constraints definert i egenskapsdefinisjon
+    /// 
+    /// **Sikkerhetshensyn:**
+    /// - Ingen automatisk autorisasjonssjekk - krever ekstern tilgangskontroll
+    /// - Egenskapsverdier kan inneholde sensitive data som lagres ukryptert
+    /// - Audit-logging registrerer opprettelseshandlingen for compliance
+    /// - Validering av datatilgang basert på entitetens sikkerhetsnivå
+    /// 
+    /// **Forretningsprosess:**
+    /// - Automatisk oppdatering av entitetsinstansens siste endringstidspunkt
+    /// - Integrasjon med datavalidering og kvalitetssikringsprosesser
+    /// - Støtte for bulk-operasjoner gjennom batch-prosessering
+    /// - Triggering av eventuelle downstream-prosesser og notifikasjoner
+    /// </remarks>
+    /// <param name="dto">Opprettelsesdata for ny egenskapsverdi inkludert verdi og metadata</param>
+    /// <returns>Opprettet egenskapsverdi med generert ID og komplett kontekstinformasjon</returns>
+    /// <response code="201">Egenskapsverdi opprettet og returnerer komplette data med Location header</response>
+    /// <response code="400">Valideringsfeil - ugyldig entitetsinstans, egenskapsdefinisjon eller dataverdi</response>
+    /// <response code="409">Konflikt - egenskapsverdi eksisterer allerede for denne kombinasjonen</response>
+    /// <response code="500">Intern serverfeil under opprettelse av egenskapsverdi</response>
     [HttpPost]
     public async Task<ActionResult<PropertyValueDto>> CreatePropertyValue(CreatePropertyValueDto dto)
     {
@@ -180,11 +314,47 @@ public class PropertyValuesController : ControllerBase
     }
 
     /// <summary>
-    /// Update an existing property value
+    /// Oppdaterer en eksisterende egenskapsverdi med validering og konsistenssjekk
     /// </summary>
-    /// <param name="id">Property value ID</param>
-    /// <param name="dto">Property value update data</param>
-    /// <returns>Updated property value</returns>
+    /// <remarks>
+    /// Utfører komplett oppdatering av en eksisterende egenskapsverdi med validering
+    /// av alle refererte entiteter og konsistenssjekk hvis nøkkelfelt endres.
+    /// Operasjonen støtter endring av både verdien selv og tilknyttede metadata
+    /// mens den opprettholder dataintegritet og forretningsregler.
+    /// 
+    /// **Valideringsregler:**
+    /// - Egenskapsverdi må eksistere før oppdatering kan utføres
+    /// - Nye entitetsinstans- og egenskapsdefinisjon-referanser må være gyldige
+    /// - Konfliktsjekk utføres hvis entitet-egenskap kombinasjon endres
+    /// - Datatype-validering mot oppdatert eller eksisterende egenskapsdefinisjon
+    /// - Forretningsregelvalidering for verdier og constraints
+    /// 
+    /// **Datahåndtering:**
+    /// - Automatisk re-formatering av visningsverdi ved verdiendring
+    /// - Bevaring av historikk gjennom audit-sporing
+    /// - Validering av nye verdier mot egenskapsdefinisjonens spesifikasjoner
+    /// - Støtte for partial updates hvor kun endrede felter påvirkes
+    /// 
+    /// **Sikkerhetshensyn:**
+    /// - Kritisk dataoperasjon som kan påvirke forretningsprosesser
+    /// - Endringer i egenskapsverdier logges for audit og compliance
+    /// - Validering av brukerens tilgang til å endre sensitive data
+    /// - Ingen automatisk autorisasjonssjekk - krever ekstern tilgangskontroll
+    /// 
+    /// **Forretningsprosess:**
+    /// - Automatisk oppdatering av audit-felter med tidsstempel og brukerinfo
+    /// - Triggering av downstream-prosesser ved kritiske verdiendringer
+    /// - Støtte for optimistisk låsing for å forhindre conflicting updates
+    /// - Integrasjon med datakvalitet og validering workflows
+    /// </remarks>
+    /// <param name="id">Unik identifikator for egenskapsverdien som skal oppdateres</param>
+    /// <param name="dto">Oppdateringsdata for egenskapsverdi inkludert nye verdier og metadata</param>
+    /// <returns>Oppdatert egenskapsverdi med alle endringer reflektert</returns>
+    /// <response code="200">Egenskapsverdi oppdatert og returnerer komplette data</response>
+    /// <response code="400">Valideringsfeil - ugyldig entitetsinstans, egenskapsdefinisjon eller dataverdi</response>
+    /// <response code="404">Egenskapsverdi med angitt ID eksisterer ikke i systemet</response>
+    /// <response code="409">Konflikt - ny kombinasjon ville skape duplikat av eksisterende egenskapsverdi</response>
+    /// <response code="500">Intern serverfeil under oppdatering av egenskapsverdi</response>
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<PropertyValueDto>> UpdatePropertyValue(Guid id, UpdatePropertyValueDto dto)
     {
