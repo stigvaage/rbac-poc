@@ -1,6 +1,38 @@
-@SP.RBAC.API_HostAddress = http://localhost:5109
+@SP.RBAC.API_HostAddress = http://localhost:5099
 
 GET {{SP.RBAC.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
+
+# Integration Documentation Endpoints Tests
+
+# Get all integration systems
+GET {{SP.RBAC.API_HostAddress}}/api/integrationSystems
+Accept: application/json
+
+###
+
+# Search integration mappings
+GET {{SP.RBAC.API_HostAddress}}/api/integrationMapping/search?Page=1&PageSize=10
+Accept: application/json
+
+###
+
+# Get system relationships overview
+GET {{SP.RBAC.API_HostAddress}}/api/systemRelationship/architecture-overview
+Accept: application/json
+
+###
+
+# Search integration documents
+GET {{SP.RBAC.API_HostAddress}}/api/integrationDocument/search?Page=1&PageSize=10
+Accept: application/json
+
+###
+
+# Get integration mapping statistics
+GET {{SP.RBAC.API_HostAddress}}/api/integrationMapping/statistics
 Accept: application/json
 
 ###

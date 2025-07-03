@@ -70,6 +70,12 @@ SP.RBAC.API/
 
 ## API-endepunkter
 
+### Helsesjekker
+
+- `GET /health` - API-helse og database-tilkoblingsstatus
+- `GET /health/ready` - Readiness probe for container-orkestrering
+- `GET /health/live` - Liveness probe for container-orkestrering
+
 ### Integrasjonssystemer
 
 - `GET /api/IntegrationSystems` - List integrasjonssystemer med paginering
@@ -229,11 +235,46 @@ SP.RBAC.API/
 
 ### Forutsetninger
 
-- .NET 9 SDK
+- .NET 9 SDK eller Docker
 - IDE (Visual Studio, VS Code, JetBrains Rider)
 - Valgfritt: SQL Server for produksjonsdatabase
 
-### Kjøre applikasjonen
+### Kjøre applikasjonen med Docker (anbefalt)
+
+1. Bygg og kjør med Docker Compose:
+
+   ```bash
+   docker-compose up -d
+   ```
+
+2. Åpne nettleseren og naviger til `http://localhost:8080` for å få tilgang til Swagger UI
+
+3. Test helse-endepunktet:
+
+   ```bash
+   curl http://localhost:8080/health
+   ```
+
+4. Stopp tjenestene:
+
+   ```bash
+   docker-compose down
+   ```
+
+5. Vis container-logger:
+
+   ```bash
+   docker logs sp-rbac-poc-sp-rbac-api-1
+   ```
+
+6. Overvåk container-status:
+
+   ```bash
+   docker ps
+   docker-compose ps
+   ```
+
+### Kjøre applikasjonen med .NET CLI
 
 1. Klon eller naviger til prosjektmappen:
 
@@ -261,6 +302,43 @@ SP.RBAC.API/
 
 5. Åpne nettleseren og naviger til `http://localhost:5109` for å få tilgang til Swagger UI
 
+### Docker-konfigurasjon
+
+Prosjektet inkluderer komplett Docker-støtte:
+
+- **Dockerfile**: Multi-stage build med .NET 9 SDK og ASP.NET Runtime
+- **docker-compose.yml**: Komplett tjenesteoppsett med helsesjekker
+- **.dockerignore**: Optimalisert build-kontekst
+- **Helsesjekker**: Automatisk overvåking av container-helse
+
+### Test data-konfigurasjon
+
+Applikasjonen støtter konfigurerbar testdata-seeding via `appsettings.Development.json`:
+
+```json
+{
+  "TestData": {
+    "EnableSeeding": true,
+    "IncludeIntegrationSampleData": true,
+    "SampleUsersCount": 2
+  }
+}
+```
+
+Konfigurasjonsalternativer:
+
+- **EnableSeeding**: Aktiverer/deaktiverer testdata-seeding (standard: true)
+- **IncludeIntegrationSampleData**: Inkluderer eksempel integrasjonssystemdata (standard: true)
+- **SampleUsersCount**: Antall eksempelbrukere å opprette (standard: 2)
+
+Når aktivert, seeder applikasjonen automatisk:
+
+- 3 integrasjonssystemer (HR, EMR, Active Directory)
+- 5 entitetsdefinisjoner (User, Role, Department, etc.)
+- 8 egenskapsdefinisjoner (EmployeeId, FirstName, Email, etc.)
+- 6 entitetsinstanser med realistiske data
+- 10 detaljerte audit-logger
+
 ### Eksempeldata
 
 Applikasjonen initialiserer automatisk eksempeldata ved oppstart:
@@ -274,10 +352,21 @@ Applikasjonen initialiserer automatisk eksempeldata ved oppstart:
 
 ## API-brukseksempler
 
+### Test helse-endepunkt
+
+```bash
+# Med Docker (port 8080)
+curl http://localhost:8080/health
+
+# Med .NET CLI (port 5109)
+curl http://localhost:5109/health
+```
+
 ### Opprett integrasjonssystem
 
 ```bash
-curl -X POST "http://localhost:5109/api/IntegrationSystems" \
+# Med Docker
+curl -X POST "http://localhost:8080/api/IntegrationSystems" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "CRM_System",
@@ -292,9 +381,13 @@ curl -X POST "http://localhost:5109/api/IntegrationSystems" \
   }'
 ```
 
-### Hent integrasjonssystemer
+### Hent integrasjonssystemer med testdata
 
 ```bash
+# Med Docker - viser seeded testdata
+curl "http://localhost:8080/api/IntegrationSystems?pageNumber=1&pageSize=10" | jq .
+
+# Med .NET CLI
 curl "http://localhost:5109/api/IntegrationSystems?pageNumber=1&pageSize=10"
 ```
 

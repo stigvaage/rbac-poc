@@ -1,56 +1,178 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using SP.RBAC.API.Data;
+using SP.RBAC.API.Services;
+using SP.RBAC.API.Middleware;
+using SP.RBAC.API.Swagger;
+using Serilog;
+using FluentValidation;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Swashbuckle.AspNetCore.Annotations;
 
-var builder = WebApplication.CreateBuilder(args);
+// Configure Serilog
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .WriteTo.File("logs/sp-rbac-api-.txt", rollingInterval: RollingInterval.Day)
+    .Enrich.FromLogContext()
+    .CreateLogger();
 
-// Add services to the container
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
+try
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "SP.RBAC.API", Version = "v1" });
-});
-
-// Add AutoMapper
-builder.Services.AddAutoMapper(typeof(MappingProfile));
-
-// Add Entity Framework
-builder.Services.AddDbContext<RbacDbContext>(options =>
-{
-    // Use In-Memory database for development/testing
-    // In production, replace with SQL Server connection string
-    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    Log.Information("Starting SP.RBAC.API application");
     
-    if (string.IsNullOrEmpty(connectionString))
-    {
-        // Use In-Memory database as fallback
-        options.UseInMemoryDatabase("RbacDb");
-    }
-    else
-    {
-        options.UseSqlServer(connectionString);
-    }
-});
+    var builder = WebApplication.CreateBuilder(args);
 
-// Add CORS
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll", policy =>
+    // Add Serilog
+    builder.Host.UseSerilog();
+
+    // Add services to the container
+    builder.Services.AddControllers();
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen(c =>
     {
-        policy.AllowAnyOrigin()
-              .AllowAnyHeader()
-              .AllowAnyMethod();
+        c.SwaggerDoc("v1", new OpenApiInfo 
+        { 
+            Title = "SP.RBAC.API - Role-Based Access Control Platform",
+            Version = "v1.0.0",
+            Description = @"
+## Overview
+
+A comprehensive .NET 9 Web API for managing role-based access control (RBAC) with support for:
+
+- **Integration Systems**: External system connections (HR, EMR, CRM, Active Directory)
+- **Entity Management**: Dynamic entity definitions and instances with flexible property systems
+- **Access Control**: Advanced rules, assignments, and automated workflows
+- **Audit & Compliance**: Complete audit trails and compliance reporting
+- **Test Data**: Configurable test data seeding for development and testing
+
+## Authentication
+
+Currently configured for development without authentication. In production environments, 
+implement JWT Bearer token authentication or OAuth2/OpenID Connect.
+
+## Rate Limiting
+
+No rate limiting is currently implemented. Consider implementing rate limiting for production use.
+
+## Error Handling
+
+All endpoints return standardized error responses with appropriate HTTP status codes:
+- **400**: Bad Request (validation errors)
+- **404**: Not Found
+- **500**: Internal Server Error
+
+## Pagination
+
+List endpoints support pagination with these standard parameters:
+- `pageNumber`: Page number (default: 1, minimum: 1)
+- `pageSize`: Items per page (default: 10, maximum: 100)
+
+## Getting Started
+
+1. All endpoints are available immediately with pre-seeded test data
+2. Use the Swagger UI 'Try it out' feature to test endpoints
+3. Check the `/health` endpoint to verify system status
+4. Explore integration systems first, then entity definitions and instances
+
+## Support
+
+For API support and documentation updates, contact the development team.
+",
+            Contact = new OpenApiContact
+            {
+                Name = "SP.RBAC.API Development Team",
+                Email = "dev-team@company.com"
+            },
+            License = new OpenApiLicense
+            {
+                Name = "MIT License",
+                Url = new Uri("https://opensource.org/licenses/MIT")
+            }
+        });
+        
+        // Include XML comments for better API documentation
+        var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+        var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+        if (File.Exists(xmlPath))
+        {
+            c.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
+        }
+
+        // Configure Swagger UI settings
+        c.EnableAnnotations();
+        c.DocumentFilter<SwaggerDocumentFilter>();
+        
+        // Add examples for better documentation
+        c.SchemaFilter<SwaggerSchemaExampleFilter>();
+        
+        // Group endpoints by tags
+        c.TagActionsBy(api => new[] { api.GroupName ?? api.ActionDescriptor.RouteValues["controller"] });
+        c.DocInclusionPredicate((name, api) => true);
+        
+        // Configure response examples
+        c.OperationFilter<SwaggerResponseExamplesFilter>();
     });
-});
 
-var app = builder.Build();
+    // Add AutoMapper
+    builder.Services.AddAutoMapper(typeof(MappingProfile));
 
-// Seed the database with sample data
+    // Add FluentValidation
+    builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+
+    // Add Entity Framework
+    builder.Services.AddDbContext<RbacDbContext>(options =>
+    {
+        // Use In-Memory database for development/testing
+        // In production, replace with SQL Server connection string
+        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+        
+        if (string.IsNullOrEmpty(connectionString))
+        {
+            // Use In-Memory database as fallback
+            options.UseInMemoryDatabase("RbacDb");
+        }
+        else
+        {
+            options.UseSqlServer(connectionString);
+        }
+    });
+
+    // Register audit service
+    builder.Services.AddScoped<IAuditService, AuditService>();
+
+    // Register test data seeder
+    builder.Services.Configure<TestDataSettings>(builder.Configuration.GetSection("TestData"));
+    builder.Services.AddScoped<ITestDataSeeder, TestDataSeeder>();
+    builder.Services.AddScoped<TestDataSettings>(provider =>
+    {
+        var configuration = provider.GetRequiredService<IConfiguration>();
+        var settings = new TestDataSettings();
+        configuration.GetSection("TestData").Bind(settings);
+        return settings;
+    });
+
+    // Add CORS
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowAll", policy =>
+        {
+            policy.AllowAnyOrigin()
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        });
+    });
+
+    // Add Health Checks
+    builder.Services.AddHealthChecks()
+        .AddDbContextCheck<RbacDbContext>();
+
+    var app = builder.Build();
+
+// Seed the database with comprehensive test data
 using (var scope = app.Services.CreateScope())
 {
-    var context = scope.ServiceProvider.GetRequiredService<RbacDbContext>();
-    await SeedDatabase(context);
+    var testDataSeeder = scope.ServiceProvider.GetRequiredService<ITestDataSeeder>();
+    await testDataSeeder.SeedAsync();
 }
 
 // Configure the HTTP request pipeline
@@ -62,223 +184,25 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "SP.RBAC.API v1");
         c.RoutePrefix = "swagger"; // Serve Swagger UI at /swagger
     });
-}
-
-app.UseHttpsRedirection();
-app.UseCors("AllowAll");
-app.UseAuthorization();
-app.MapControllers();
-
-app.Run();
-
-// Seed database with sample data
-static async Task SeedDatabase(RbacDbContext context)
-{
-    // Ensure database is created
-    await context.Database.EnsureCreatedAsync();
+}    app.UseHttpsRedirection();
+    app.UseCors("AllowAll");
     
-    // Check if data already exists
-    if (await context.IntegrationSystems.AnyAsync())
-    {
-        return; // Database already seeded
-    }
+    // Add audit middleware before authorization
+    app.UseAuditLogging();
+    
+    app.UseAuthorization();
+    app.MapControllers();
+    
+    // Map health check endpoint
+    app.MapHealthChecks("/health");
 
-    // Seed Integration Systems
-    var hrSystem = new SP.RBAC.API.Entities.IntegrationSystem
-    {
-        Name = "HR_System",
-        DisplayName = "Human Resources System",
-        Description = "Corporate HR management system",
-        SystemType = "HR",
-        SystemVersion = "2.1.0",
-        ConnectionString = "Server=hr-db;Database=HRMS;Trusted_Connection=true;",
-        AuthenticationType = SP.RBAC.API.Entities.AuthenticationType.Database,
-        IsActive = true,
-        Configuration = """{"syncInterval": "daily", "batchSize": 1000}"""
-    };
-
-    var emrSystem = new SP.RBAC.API.Entities.IntegrationSystem
-    {
-        Name = "EMR_System",
-        DisplayName = "Electronic Medical Records",
-        Description = "Hospital EMR system",
-        SystemType = "EMR",
-        SystemVersion = "3.0.1",
-        ConnectionString = "Server=emr-db;Database=EMR;Trusted_Connection=true;",
-        AuthenticationType = SP.RBAC.API.Entities.AuthenticationType.LDAP,
-        IsActive = true,
-        Configuration = """{"syncInterval": "hourly", "departments": ["Cardiology", "Emergency"]}"""
-    };
-
-    context.IntegrationSystems.AddRange(hrSystem, emrSystem);
-    await context.SaveChangesAsync();
-
-    // Seed Entity Definitions
-    var userDefinition = new SP.RBAC.API.Entities.EntityDefinition
-    {
-        IntegrationSystemId = hrSystem.Id,
-        Name = "User",
-        DisplayName = "System User",
-        Description = "Employee/user records from HR system",
-        TableName = "employees",
-        PrimaryKeyField = "emp_id",
-        IsActive = true,
-        SortOrder = 1,
-        Metadata = """{"syncTable": "employees", "lastModifiedField": "updated_at"}"""
-    };
-
-    var roleDefinition = new SP.RBAC.API.Entities.EntityDefinition
-    {
-        IntegrationSystemId = hrSystem.Id,
-        Name = "Role",
-        DisplayName = "Job Role",
-        Description = "Job roles and positions",
-        TableName = "job_roles",
-        PrimaryKeyField = "role_id",
-        IsActive = true,
-        SortOrder = 2,
-        Metadata = """{"syncTable": "job_roles", "hierarchical": true}"""
-    };
-
-    context.EntityDefinitions.AddRange(userDefinition, roleDefinition);
-    await context.SaveChangesAsync();
-
-    // Seed Property Definitions for User
-    var userProperties = new[]
-    {
-        new SP.RBAC.API.Entities.PropertyDefinition
-        {
-            EntityDefinitionId = userDefinition.Id,
-            Name = "EmployeeId",
-            DisplayName = "Employee ID",
-            Description = "Unique employee identifier",
-            DataType = SP.RBAC.API.Entities.DataType.String,
-            SourceField = "emp_id",
-            IsRequired = true,
-            IsUnique = true,
-            IsSearchable = true,
-            SortOrder = 1
-        },
-        new SP.RBAC.API.Entities.PropertyDefinition
-        {
-            EntityDefinitionId = userDefinition.Id,
-            Name = "FirstName",
-            DisplayName = "First Name",
-            Description = "Employee's first name",
-            DataType = SP.RBAC.API.Entities.DataType.String,
-            SourceField = "first_name",
-            IsRequired = true,
-            IsSearchable = true,
-            SortOrder = 2
-        },
-        new SP.RBAC.API.Entities.PropertyDefinition
-        {
-            EntityDefinitionId = userDefinition.Id,
-            Name = "LastName",
-            DisplayName = "Last Name",
-            Description = "Employee's last name",
-            DataType = SP.RBAC.API.Entities.DataType.String,
-            SourceField = "last_name",
-            IsRequired = true,
-            IsSearchable = true,
-            SortOrder = 3
-        },
-        new SP.RBAC.API.Entities.PropertyDefinition
-        {
-            EntityDefinitionId = userDefinition.Id,
-            Name = "Email",
-            DisplayName = "Email Address",
-            Description = "Employee's email address",
-            DataType = SP.RBAC.API.Entities.DataType.Email,
-            SourceField = "email",
-            IsRequired = true,
-            IsUnique = true,
-            IsSearchable = true,
-            SortOrder = 4
-        },
-        new SP.RBAC.API.Entities.PropertyDefinition
-        {
-            EntityDefinitionId = userDefinition.Id,
-            Name = "Department",
-            DisplayName = "Department",
-            Description = "Employee's department",
-            DataType = SP.RBAC.API.Entities.DataType.String,
-            SourceField = "department",
-            IsRequired = true,
-            IsSearchable = true,
-            SortOrder = 5
-        }
-    };
-
-    context.PropertyDefinitions.AddRange(userProperties);
-    await context.SaveChangesAsync();
-
-    // Seed sample Entity Instances
-    var johnDoe = new SP.RBAC.API.Entities.EntityInstance
-    {
-        EntityDefinitionId = userDefinition.Id,
-        ExternalId = "EMP001",
-        DisplayName = "John Doe",
-        IsActive = true,
-        SyncStatus = SP.RBAC.API.Entities.SyncStatus.Success,
-        LastSyncedAt = DateTime.UtcNow.AddDays(-1),
-        RawData = """{"emp_id": "EMP001", "first_name": "John", "last_name": "Doe", "email": "john.doe@hospital.com", "department": "IT"}"""
-    };
-
-    var janeDoe = new SP.RBAC.API.Entities.EntityInstance
-    {
-        EntityDefinitionId = userDefinition.Id,
-        ExternalId = "EMP002",
-        DisplayName = "Jane Smith",
-        IsActive = true,
-        SyncStatus = SP.RBAC.API.Entities.SyncStatus.Success,
-        LastSyncedAt = DateTime.UtcNow.AddDays(-1),
-        RawData = """{"emp_id": "EMP002", "first_name": "Jane", "last_name": "Smith", "email": "jane.smith@hospital.com", "department": "HR"}"""
-    };
-
-    context.EntityInstances.AddRange(johnDoe, janeDoe);
-    await context.SaveChangesAsync();
-
-    // Seed Property Values for John Doe
-    var johnDoeProperties = new[]
-    {
-        new SP.RBAC.API.Entities.PropertyValue
-        {
-            EntityInstanceId = johnDoe.Id,
-            PropertyDefinitionId = userProperties[0].Id, // EmployeeId
-            Value = "EMP001",
-            DisplayValue = "EMP001"
-        },
-        new SP.RBAC.API.Entities.PropertyValue
-        {
-            EntityInstanceId = johnDoe.Id,
-            PropertyDefinitionId = userProperties[1].Id, // FirstName
-            Value = "John",
-            DisplayValue = "John"
-        },
-        new SP.RBAC.API.Entities.PropertyValue
-        {
-            EntityInstanceId = johnDoe.Id,
-            PropertyDefinitionId = userProperties[2].Id, // LastName
-            Value = "Doe",
-            DisplayValue = "Doe"
-        },
-        new SP.RBAC.API.Entities.PropertyValue
-        {
-            EntityInstanceId = johnDoe.Id,
-            PropertyDefinitionId = userProperties[3].Id, // Email
-            Value = "john.doe@hospital.com",
-            DisplayValue = "john.doe@hospital.com"
-        },
-        new SP.RBAC.API.Entities.PropertyValue
-        {
-            EntityInstanceId = johnDoe.Id,
-            PropertyDefinitionId = userProperties[4].Id, // Department
-            Value = "IT",
-            DisplayValue = "IT Department"
-        }
-    };
-
-    context.PropertyValues.AddRange(johnDoeProperties);
-    await context.SaveChangesAsync();
+    app.Run();
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Application terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
 }

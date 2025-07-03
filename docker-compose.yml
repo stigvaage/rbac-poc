@@ -1,0 +1,47 @@
+# Docker Compose for SP.RBAC.API Development Environment
+version: '3.8'
+
+services:
+  # SP.RBAC.API Application
+  sp-rbac-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+    volumes:
+      # Mount source code for development (optional)
+      - ./sp.rbac.api:/app/source:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+# Optional: Add PostgreSQL for future use (when moving away from in-memory DB)
+  # postgres:
+  #   image: postgres:15
+  #   environment:
+  #     - POSTGRES_DB=sp_rbac
+  #     - POSTGRES_USER=sp_rbac_user
+  #     - POSTGRES_PASSWORD=sp_rbac_password
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   restart: unless-stopped
+
+# Optional: Add Redis for future caching
+  # redis:
+  #   image: redis:7-alpine
+  #   ports:
+  #     - "6379:6379"
+  #   restart: unless-stopped
+
+# volumes:
+#   postgres_data:
